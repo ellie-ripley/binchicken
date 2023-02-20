@@ -395,12 +395,12 @@ isAdmin = do
 instance YesodAuthPersist BinChicken
 
 instance YesodAuthBinLogin BinChicken where
-  doesUserExist iden emal pwh = do
-    mUser <- liftHandler $ runDB $ getBy (UniqueUser iden)
+  doesUserExist emal pwh = do
+    mUser <- liftHandler $ runDB $ getBy (UniqueUser emal)
     case mUser of
       Nothing -> return False
-      Just (Entity _ (User e p)) ->
-        if e == emal && p == pwh
+      Just (Entity _ (User _ p)) ->
+        if p == pwh
         then return True
         else return False
 

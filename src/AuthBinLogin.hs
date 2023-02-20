@@ -34,9 +34,9 @@ binLoginR :: AuthRoute
 binLoginR = PluginR "binLogin" ["login"]
 
 class (YesodAuth site) => YesodAuthBinLogin site where
-  -- | check whether login info works (username, surname, id)
+  -- | check whether login info works (email, password)
   doesUserExist :: (MonadHandler m, HandlerSite m ~ site)
-                => Text -> Text -> Text -> m Bool
+                => Text -> Text -> m Bool
 
 binLogin :: YesodAuthBinLogin m => AuthPlugin m
 binLogin =
@@ -54,17 +54,13 @@ binLogin =
               <input type=hidden name=#{defaultCsrfParamName} value=#{t}>
               <table>
                 <tr>
-                  <th>Username
+                  <th>Email
                   <td>
-                    <input type="text" name="ident" required>
+                    <input type="text" name="email" required>
                 <tr>
-                  <th>Surname
+                  <th>Password
                   <td>
-                    <input type="text" name="surname" required>
-                <tr>
-                  <th>Id number
-                  <td>
-                    <input type="text" name="idnumber" required>
+                    <input type="text" name="password" required>
                 <tr>
                   <td colspan="2">
                     <button type="submit" .btn .btn-success>_{Msg.LoginTitle}
@@ -72,11 +68,10 @@ binLogin =
 
 postBinLoginR :: YesodAuthBinLogin site => AuthHandler site TypedContent
 postBinLoginR = do
-  (iden, surn, idnum) <- runInputPost
-        ((,,) <$> ireq textField "ident"
-              <*> ireq textField "surname"
-              <*> ireq textField "idnumber")
-  isValid <- doesUserExist iden surn idnum
+  (emal, pw) <- runInputPost
+        ((,) <$> ireq textField "email"
+              <*> ireq textField "password")
+  isValid <- doesUserExist emal pw
   if isValid
-  then setCredsRedirect (Creds "binLogin" iden [])
-  else loginErrorMessageI LoginR (Msg.IdentifierNotFound iden)
+  then setCredsRedirect (Creds "binLogin" emal [])
+  else loginErrorMessageI LoginR (Msg.IdentifierNotFound emal)
