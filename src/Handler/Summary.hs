@@ -40,9 +40,7 @@ displayRunningTotal rt =
   <> pack (show $ rtCurrentStreak rt)
 
 data SummaryRow = SummaryRow
-  { srIdent :: Text
-  , srSurname :: Text
-  , srIdNum :: Text
+  { srEmail :: Text
   , srResults :: Map ExerciseType RunningTotal
   }
 
@@ -68,9 +66,7 @@ emptyResults =
 
 initRow :: User -> SummaryRow
 initRow u = SummaryRow
-  { srIdent = userIdent u
-  , srSurname = userSurname u
-  , srIdNum = userIdNumber u
+  { srEmail = userEmail u
   , srResults = emptyResults
   }
 

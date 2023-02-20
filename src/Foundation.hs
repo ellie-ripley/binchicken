@@ -85,7 +85,7 @@ import Import.NoFoundation
                   appShouldLogAll),
       widgetFile,
       UserId,
-      User(User, userIdent),
+      User(User, userEmail),
       img_binchicken_jpg,
       getAuth,
       maybeAuthPair,
@@ -389,18 +389,18 @@ isAdmin = do
       case muent of
         Nothing -> return unauth
         Just us
-          | userIdent us == "dave" -> return Authorized
+          | userEmail us == "davewripley@gmail.com" -> return Authorized
           | otherwise -> return unauth
 
 instance YesodAuthPersist BinChicken
 
 instance YesodAuthBinLogin BinChicken where
-  doesUserExist iden surn idnum = do
+  doesUserExist iden emal pwh = do
     mUser <- liftHandler $ runDB $ getBy (UniqueUser iden)
     case mUser of
       Nothing -> return False
-      Just (Entity _ (User _ s n)) ->
-        if s == surn && idnum == n
+      Just (Entity _ (User e p)) ->
+        if e == emal && p == pwh
         then return True
         else return False
 

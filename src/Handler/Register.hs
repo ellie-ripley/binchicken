@@ -10,9 +10,9 @@ import Yesod.Form.Bootstrap3 (BootstrapFormLayout (..), renderBootstrap3)
 
 -- Define our data that will be used for creating the form.
 data RegistrationForm = RegistrationForm
-    { newUserIdent :: Text
-    , newUserSurname :: Text
-    , newUserIdNumber :: Text
+    { newUserEmail :: Text
+    , newUserPassword :: Text
+    , newUserPasswordConfirm :: Text
     }
     deriving (Show)
 
@@ -48,9 +48,8 @@ postRegisterR = do
 
     newUser <- case submission of
                  Just rform -> do
-                   attempt <- runDB . insertUnique $ (User (newUserIdent rform)
-                                                           (newUserSurname rform)
-                                                           (newUserIdNumber rform))
+                   attempt <- runDB . insertUnique $ (User (newUserEmail rform)
+                                                           (newUserPassword rform))
                    case attempt of
                      Just ky -> return (Success ky)
                      Nothing -> return Failure
@@ -62,9 +61,9 @@ postRegisterR = do
 
 sampleForm :: Form RegistrationForm
 sampleForm = renderBootstrap3 BootstrapBasicForm $ RegistrationForm
-    <$> areq textField "Username to register: " Nothing
-    <*> areq textField "Surname: " Nothing
-    <*> areq textField "Id Number: " Nothing
+    <$> areq textField "Email: " Nothing
+    <*> areq textField "Password: " Nothing
+    <*> areq textField "Confirm password: " Nothing
 
 getAllUsers :: DB [Entity User]
-getAllUsers = selectList [] [Asc UserIdent]
+getAllUsers = selectList [] [Asc UserEmail]
