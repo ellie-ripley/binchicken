@@ -8,6 +8,8 @@ module Handler.Register where
 
 import Import
 import Yesod.Form.Bootstrap3 (BootstrapFormLayout (..), renderBootstrap3)
+import Text.Email.Validate (isValid)
+
 
 -- Define our data that will be used for creating the form.
 data RegistrationForm = RegistrationForm
@@ -36,6 +38,7 @@ getRegisterR = do
 
 data SubmissionStatus =
     Success (Key User)
+  | NotAnEmail Text
   | Failure
   | PwMismatch
   deriving (Show)
@@ -43,6 +46,7 @@ data SubmissionStatus =
 displaySubmissionStatus :: SubmissionStatus -> Text
 displaySubmissionStatus = \case
   Success _  -> "Success!"
+  NotAnEmail tx -> tx <> " is not an email address"
   Failure    -> "Failed to register; probably the email is taken already"
   PwMismatch -> "Passwords did not match"
 
@@ -53,13 +57,14 @@ postRegisterR = do
                               <*> ireq textField "password"
                               <*> ireq textField "confirm")
 
-    subStat <- if pw == pwc
-                  then do
-                        attempt <- runDB . insertUnique $ (User emal pw)
-                        case attempt of
-                          Just ky -> return (Success ky)
-                          Nothing -> return Failure
-               else return PwMismatch
+    subStat <- if not . isValid $ encodeUtf8 emal
+               then return $ NotAnEmail emal
+               else if pw /= pwc
+                    then return PwMismatch
+                    else do attempt <- runDB . insertUnique $ (User emal pw)
+                            case attempt of
+                                        Just ky -> return (Success ky)
+                                        Nothing -> return Failure
     let successMessage = Just $ displaySubmissionStatus subStat
 
     request <- getRequest
