@@ -1,0 +1,27 @@
+<div .container>
+    ^{loginNotifyW}
+    <div .row>
+        <h2>#{headr}
+    <div .row>
+        <p>Here is a random argument! (Premises above the line; conclusion below it)
+        <div .oblang ##{displayArgumentId}>
+            <ul .argument>
+                $forall prem <- prems
+                    <li>#{displayFormula prem}
+                <li>---------------
+                <li>#{displayFormula conc}
+    <div .row>
+        <div .col-lg-12>
+            <p>Give a counterexample to this argument in the #{matrxTag}, if there is one!
+            <p>#{extraText}
+    <div .row>
+        <div .col-lg-12 ##{inputValuationId}>
+            <table>
+                <tbody>
+                    $forall at <- ats
+                         ^{valWidget valsToChooseFrom at}
+            <button .btn.btn-primary ##{submitValButtonId}>Submit counterexample
+            <button .btn.btn-primary ##{validButtonId}>There is no counterexample
+    <div .row>
+        <div .col-lg-12>
+            <p ##{displayResultId}>

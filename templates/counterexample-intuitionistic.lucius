@@ -1,0 +1,7 @@
+.proofcontainer {
+    background-color: white;
+}
+
+.model {
+    margin-bottom: 20px;
+}

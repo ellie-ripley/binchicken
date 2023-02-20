@@ -1,0 +1,84 @@
+var prf = document.getElementById("#{rawJS proofId}");
+
+
+var root1 = new ProofRoot(
+{
+  "label": #{displayFormula startingConclusion},
+  "rule": "",
+  "forest": [
+    {
+      "label": "",
+      "rule": "",
+      "forest": []
+    }
+  ]
+});
+
+root1.renderOn(prf);
+
+function clrModInput() {
+  document.getElementById("#{rawJS modelId}").value = "";
+}
+
+$(document).ready(clrModInput);
+
+function reportAnswer(data) {
+  console.log("Success!");
+  console.log(data);
+  const fb = document.getElementById("#{rawJS feedbackId}");
+  fb.innerHTML = "";
+  if ("feedback" in data[1])
+  {
+    fb.innerHTML = data[1].feedback;
+  }
+  if (data[0].isCorrect) {
+    document.getElementById("#{rawJS buttonModDivId}").innerHTML = "";
+    document.getElementById("#{rawJS buttonPrfDivId}").innerHTML = "";
+  }
+  fb.innerHTML +=
+    '<p><button class="btn btn-primary" onClick="window.location.reload(true)">Next exercise</button></p>'
+}
+
+function logError(data) {
+  console.log("Error reporting response.");
+  console.log(data);
+}
+
+$(function() {
+  $("##{rawJS buttonSubmitProofId}").click(function() {
+    var ajaxData;
+    ajaxData = JSON.stringify({
+      iciArgument: #{toJSON arg},
+      iciProof: root1,
+      iciModel: null,
+      iciMorP: #{toJSON Prf}
+    });
+    $.ajax({
+      url: '@{ajaxRoute}',
+      type: 'POST',
+      contentType: "application/json",
+      data: ajaxData,
+      success: reportAnswer,
+      error: logError
+    });
+  });
+
+  $("##{rawJS buttonSubmitModelId}").click(function() {
+    var ajaxData;
+    ajaxData = JSON.stringify({
+      iciArgument: #{toJSON arg},
+      iciProof: null,
+      iciModel: document.getElementById("#{rawJS modelId}").value,
+      iciMorP: #{toJSON Mod}
+    });
+    $.ajax({
+      url: '@{ajaxRoute}',
+      type: 'POST',
+      contentType: "application/json",
+      data: ajaxData,
+      success: reportAnswer,
+      error: logError
+    });
+  });
+
+});

@@ -1,0 +1,58 @@
+    <div .container>
+        <div .row>
+            <h3 .header>
+                Current progress
+
+<div .container>
+    <div .row>
+        <div .col-lg-12>
+            <p>Here's your progress!
+    $if null exTypes
+        <p>There are no exercise types! (This is a bug in the site!)
+    $else
+        <div .ex-progress-list>
+            $forall et <- exTypes
+              $with targs <- targets et
+                <div .row.ex-progress>
+                    <a .col-6.ex-link href="@{exerciseRoute et}">
+                        #{fromEnum et}. #{prettyExerciseName et}
+                    $maybe prog <- lookup et pm
+                      $with points <- pointsEarned targs prog
+                        <div .row>
+                          <div .col-md-4>
+                              Total correct: #{totalCorrect prog}
+                          <div .col-md-4>
+                              Best streak: #{bestStreak prog}
+                          <div .col-md-4>
+                              Current streak: #{currentStreak prog}
+                          <hr>
+                        <div .row>
+                          <div .col-md-2>
+                              <h6>Level 1:
+                              <p>#{totalMilestone1 $ targs} correct
+                              <img .progress-badge :points >= OnePoint:.complete src=@{StaticR img_ibis_icon_png}>
+                              $if points >= OnePoint
+                                  <p>Got it!
+                              $else
+                                  <p>Not yet!
+                          <div .col-md-2>
+                              <h6>Level 2:
+                              <p>#{totalMilestone2 $ targs} correct
+                              <img .progress-badge :points >= TwoPoints:.complete src=@{StaticR img_ibis_icon_png}>
+                              $if points >= TwoPoints
+                                  <p>Got it!
+                              $else
+                                  <p>Not yet!
+                          <div .col-md-2>
+                              <h6>Level 3:
+                              <p>streak of #{streakMilestone1 $ targs}
+                              <img .progress-badge :points >= ThreePoints:.complete src=@{StaticR img_ibis_icon_png}>
+                              $if points >= ThreePoints
+                                  <p>Got it!
+                              $else
+                                  <p>Not yet!
+                          <div .col-md-2>
+                              <h6>Points earned:
+                              <h4>#{displayPointsEarned $ pointsEarned (targets et) prog}
+                    $nothing
+                        <p>Trouble reading streaks! (This is a bug in the site!)

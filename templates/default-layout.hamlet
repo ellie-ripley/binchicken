@@ -1,36 +1,34 @@
 
 <!-- Static navbar -->
-<nav .navbar.navbar-default.navbar-static-top>
-    <div .container>
-        <div .navbar-header>
-            <button type="button" .navbar-toggle.collapsed data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-                <span class="sr-only">Toggle navigation
-                <span class="icon-bar">
-                <span class="icon-bar">
-                <span class="icon-bar">
-
+<nav .navbar.navbar-expand-lg>
+    <div .container-fluid>
+        <a .navbar-brand href="@{HomeR}">Bin Chicken
+        <button .navbar-toggler
+                type=button
+                data-bs-toggle=collapse
+                data-bs-target=#navbar
+                aria-controls=navbar
+                aria-expanded=false
+                aria-label="Toggle navigation">
+            <span .navbar-toggle-icon>X
         <div #navbar .collapse.navbar-collapse>
-            <ul .nav.navbar-nav>
+            <ul .navbar-nav.me-auto>
                 $forall MenuItem label route _ <- navbarLeftFilteredMenuItems
-                    <li :Just route == mcurrentRoute:.active>
-                        <a href="@{route}">#{label}
+                    <li .nav-item>
+                        <a .nav-link href="@{route}"
+                           :Just route == mcurrentRoute:.active
+                           :Just route == mcurrentRoute:aria-current=page>#{label}
 
             <ul .nav.navbar-nav.navbar-right>
                 $forall MenuItem label route _ <- navbarRightFilteredMenuItems
-                    <li :Just route == mcurrentRoute:.active>
-                        <a href="@{route}">#{label}
+                    <li .nav-item>
+                        <a .nav-link href="@{route}"
+                           :Just route == mcurrentRoute:.active
+                           :Just route == mcurrentRoute:aria-current=page>#{label}
 
 <!-- Page Contents -->
 
-<div .container>
-    $if not $ Just HomeR == mcurrentRoute
-        <ul .breadcrumb>
-            $forall bc <- parents
-                <li>
-                    <a href="@{fst bc}">#{snd bc}
-
-            <li .active>#{title}
-
+<div .container.page-contents>
     $maybe msg <- mmsg
       <div .alert.alert-info #message>#{msg}
 
@@ -38,13 +36,18 @@
 $if (Just HomeR == mcurrentRoute)
     ^{widget}
 $else
-    <div .container>
-        <div .row>
-            <div .col-md-12>
-                ^{widget}
+      <div .container>
+          <div .row>
+              <div .col-md-12>
+                  ^{widget}
 
 <!-- Footer -->
 <footer .footer>
     <div .container>
         <p .text-muted>
             #{appCopyright $ appSettings master}
+            <a href="https://www.flaticon.com/free-icons/ornithology" title="ornithology icons">Ornithology icons created by Freepik - Flaticon
+        $maybe ap <- muser
+            <p>Logged in as #{userIdent $ snd ap}
+        $nothing
+            <p>Not logged in

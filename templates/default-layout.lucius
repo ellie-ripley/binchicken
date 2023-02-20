@@ -1,6 +1,10 @@
-.masthead,
+@navbgColor: #66809a;
+@mainbgColor: #66809a77;
+@linkColor: #2211dd;
+@navlinkColor: #2211dd;
+
 .navbar {
-    background-color: rgb(27, 28, 29);
+    background-color: #{navbgColor};
 }
 
 .navbar-default .navbar-nav > .active > a {
@@ -9,19 +13,24 @@
 }
 
 .navbar-nav {
-    padding-bottom: 1em;
+}
+
+.nav-link, .navbar-brand {
+    color: #{navlinkColor};
 }
 
 .masthead {
+    width: 100%;
+    background-image: url(@{StaticR img_binchicken_jpg});
+    background-size: cover;
+    background-position: top center;
     margin-top: -21px;
-    color: white;
-    text-align: center;
-    min-height: 500px;
+    color: yellow;
+    text-align: left;
+    min-height: 400px;
 }
 
 .masthead .header {
-    max-width: 700px;
-    margin: 0 auto;
     font-family: Lato,'Helvetica Neue',Arial,Helvetica,sans-serif;
 }
 
@@ -40,6 +49,14 @@
 
 .masthead .btn {
     margin: 1em 0;
+}
+
+body {
+    background-color: #{mainbgColor};
+}
+
+.page-contents {
+    padding-top: 1rem;
 }
 
 
@@ -70,4 +87,12 @@
 
 #message {
     margin-bottom: 40px;
+}
+
+.oblang {
+  font-family: "Courier New", "Courier", monospace;
+}
+
+ul.argument {
+  list-style-type: none;
 }

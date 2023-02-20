@@ -1,0 +1,42 @@
+$(function() {
+  $("##{rawJS buttonCorrectId}").click(function() {
+    // Make an AJAX request to the server to create a new attempt
+    $.ajax({
+      url: '@{DummyExerciseR}',
+      type: 'POST',
+      contentType: "application/json",
+      data: JSON.stringify({
+        exerciseType: 'DummyExercise',
+        isCorrect: true,
+        exerciseContent: 'Exercise text',
+        submittedResponse: 'Correct'
+      }),
+      success: function (data) {
+        document.getElementById("#{rawJS displayResultId}").innerHTML = "Success: correct!";
+      },
+      error: function (data) {
+        console.log("Error reporting result: ");
+      },
+    });
+  });
+
+  $("##{rawJS buttonIncorrectId}").click(function() {
+    $.ajax({
+      url: '@{DummyExerciseR}',
+      type: 'POST',
+      contentType: "application/json",
+      data: JSON.stringify({
+        exerciseType: 'DummyExercise',
+        isCorrect: false,
+        exerciseContent: 'Exercise text',
+        submittedResponse: 'Incorrect'
+      }),
+      success: function (data) {
+        document.getElementById("#{rawJS displayResultId}").innerHTML = "Success: incorrect!";
+      },
+      error: function (data) {
+        console.log("Error reporting result");
+      },
+    });
+  });
+});

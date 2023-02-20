@@ -1,0 +1,83 @@
+const atomDisplayValId = #{atomDisplayValIdPrefix}
+
+function provideFeedback(feedb) {
+  document.getElementById("#{rawJS displayResultId}").innerHTML = feedb;
+}
+
+function preventNewValuation() {
+  document.getElementById("#{rawJS inputValuationId}").innerHTML = "";
+}
+
+function reportAnswer(data) {
+    if (data[1].report === #{toJSON ValidCorrect}) {
+        provideFeedback("Right on! This argument is indeed valid; it has no counterexamples in this matrix.");
+    } else if (data[1].report === #{toJSON ValidIncorrect}) {
+        provideFeedback("Nope; this argument has a counterexample. Here's one: " + data[1].cex);
+        preventNewValuation();
+    } else if (data[1].report === #{toJSON CounterexampleIncomplete}) {
+        provideFeedback("It seems like you didn't fill in a value for each atomic. Try again!");
+    } else if (data[1].report === #{toJSON CounterexampleCorrect}) {
+        provideFeedback("Yes; that's totally a counterexample to this argument!");
+    } else if (data[1].report === #{toJSON CounterexampleIncorrect}) {
+        provideFeedback("Nope; I'm afraid that's not a counterexample. " + data[1].ups + data[1].dc);
+    } else {
+        provideFeedback("Whoops! You shouldn't see this; something's gone wrong in the site! Please report this bug, together with a screenshot and explanation of what you were doing when this came up. Thanks much!")
+    }
+    console.log(data);
+    document.getElementById("#{rawJS displayResultId}").innerHTML +=
+      '<p><button class="btn btn-primary" onClick="window.location.reload(true)">Next argument</button></p>'
+}
+
+function logError(data) {
+    console.log("Error reporting response: " + data);
+}
+
+function enteredValuation() {
+    const atomsToValue = #{atsJs};
+    // .reduce is a fold
+    // (acc, curr) => (acc[curr]=BLAH, acc) is a function
+    // it sets acc[curr] to BLAH and returns the modified acc --- what's the return syntax here?
+    // the {} is the initial state of the accumulator: an empty object
+    const returnObject =
+      atomsToValue.reduce(
+        (acc, curr) =>
+          (acc[curr]=document.getElementById(atomDisplayValId + curr).innerHTML
+          , acc),{}
+      );
+    console.log(JSON.stringify(returnObject));
+    return returnObject;
+}
+
+$(function() {
+  $("##{rawJS submitValButtonId}").click(function() {
+    // Make an AJAX request to the server to create a new attempt
+    $.ajax({
+      url: '@{ajaxRoute}',
+      type: 'POST',
+      contentType: "application/json",
+      data: JSON.stringify({
+        incArgument: #{toJSON arg},
+        incMatrix: #{toJSON mtag},
+        incHasValuation: #{toJSON True},
+        incValuation: enteredValuation()
+      }),
+      success: reportAnswer,
+      error: logError
+    });
+  });
+
+  $("##{rawJS validButtonId}").click(function() {
+    $.ajax({
+      url: '@{ajaxRoute}',
+      type: 'POST',
+      contentType: "application/json",
+      data: JSON.stringify({
+        incArgument: #{toJSON arg},
+        incMatrix: #{toJSON mtag},
+        incHasValuation: #{toJSON False}
+      }),
+      success: reportAnswer,
+      error: logError
+    });
+  });
+});

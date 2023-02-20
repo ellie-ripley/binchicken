@@ -1,0 +1,30 @@
+<div .container>
+   <div .row>
+       <h3>Summary
+
+<div .container>
+    <div .row>
+        <div .col-lg-12>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID
+                        <th>Alias
+                        <th>Surname
+                        <th>ID
+                        <th>Total
+                        $forall et <- exts
+                            <th>#{show (fromEnum et)}
+                <tbody>
+                $forall (Entity i u) <- usrs
+                    <tr>
+                        <td>#{displayUserId i}
+                        <td>#{userIdent u}
+                        <td>#{userSurname u}
+                        <td>#{userIdNumber u}
+                        $maybe scr <- srResults <$> (M.lookup i summ)
+                            <td>#{show (totalScore scr)}
+                            $forall et <- exts
+                                <td>#{show (exScore et scr)}
+                        $nothing
+                            <td>Error 23

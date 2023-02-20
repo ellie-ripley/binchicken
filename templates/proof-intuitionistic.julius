@@ -1,0 +1,54 @@
+var prf = document.getElementById("#{rawJS proofId}");
+
+
+var root1 = new ProofRoot(
+{
+  "label": #{displayFormula concl},
+  "rule": "",
+  "forest": [
+    {
+      "label": "",
+      "rule": "",
+      "forest": []
+    }
+  ]
+});
+
+root1.renderOn(prf);
+
+function reportAnswer(data) {
+  console.log("Success!");
+  console.log(data);
+  const fb = document.getElementById("#{rawJS feedbackId}");
+  fb.innerHTML = "";
+  if ("feedback" in data[1])
+  {
+    fb.innerHTML = data[1].feedback;
+  }
+  if (data[0].isCorrect) {
+    document.getElementById("#{rawJS buttonDivId}").innerHTML = "";
+  }
+  fb.innerHTML +=
+    '<p><button class="btn btn-primary" onClick="window.location.reload(true)">Next exercise</button></p>'
+}
+
+function logError(data) {
+  console.log("Error reporting response.");
+  console.log(data);
+}
+
+$(function() {
+  $("##{rawJS buttonSubmitId}").click(function() {
+    $.ajax({
+      url: '@{ProofIntuitionisticR}',
+      type: 'POST',
+      contentType: "application/json",
+      data: JSON.stringify({
+        piArgument: #{toJSON arg},
+        piProof: root1
+      }),
+      success: reportAnswer,
+      error: logError
+    });
+  });
+});

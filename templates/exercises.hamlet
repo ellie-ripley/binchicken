@@ -1,0 +1,17 @@
+<div .container>
+    <div .row>
+        <h3 .header>
+            Exercises!
+
+<div .container>
+    <div .row>
+        <div .col-lg-12>
+            <p>These are the exercises currently available:
+            $if null exTypes
+                <p>There are no exercise types! (This is a bug in the site!)
+            $else
+                <ul .ex-list>
+                    $forall et <- exTypes
+                        <li>
+                            <a .col-6.ex-link href="@{exerciseRoute et}">
+                                #{fromEnum et}. #{prettyExerciseName et}

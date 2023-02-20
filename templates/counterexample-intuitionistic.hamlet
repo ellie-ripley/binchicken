@@ -1,0 +1,83 @@
+<div .container>
+    ^{loginNotifyW}
+    <div .row>
+        <h2>Is this intuitionistically valid?
+    <div .row>
+        <div .col-lg-12>
+            <p>Decide whether the following argument is intuitionistically valid. If it is not, give an intuitionistic model that's a counterexample to it. If it is, give a proof of the argument in NJ.
+    <div .row>
+        <div .col-lg-12.oblang>
+            <ul .argument>
+                $forall prem <- prems
+                    <li>#{displayFormula prem}
+                <li>---------------
+                <li>#{displayFormula conc}
+    <div .row ##{buttonModDivId}>
+        <div .col-4>
+            <button .btn.btn-primary ##{buttonSubmitModelId}>Invalid: submit model
+    <div .row.model>
+        <div .col-lg-12>
+            <input type=text placeholder="Input model here" ##{modelId}>
+    <div .row>
+        <div .col-lg-12>
+            <h4>OR
+    <div .row ##{buttonPrfDivId}>
+        <div .col-4>
+            <button .btn.btn-primary ##{buttonSubmitProofId}>Valid: submit proof
+    ^{proofWidget}
+    <div .row>
+        <div .col-lg-12>
+            <div ##{feedbackId}>
+    <div .row>
+        <h5>How to enter a model:
+    <div .row>
+        <div .col-lg-12>
+            <ul>
+                <li>Put curly brackets <code>{  }</code> around the whole model, and also around each point in the model.
+                <li>For each point, just put the atomic sentences you want in that point.
+                <li>You can use spaces or commas if you want, but you don't have to. Order doesn't matter.
+                <li>Examples: <code>{{p, q}, {r, s}, {}}</code> and <code>{{}{sr}{qp}}</code> are two ways to enter the same model.
+    <div .row>
+        <h5>How to enter a proof:
+    <div .row>
+        <div .col-lg-12>
+          <ul>
+            <li>You can't edit the conclusion; that's autofilled for you.
+            <li>Input connectives like so:
+                <table .table.table-striped>
+                    <thead .thead-light>
+                        <tr>
+                            <th>Connective
+                            <th>Write:
+                    <tbody>
+                      <tr>
+                        <td>Negation
+                        <td>
+                            <code>~
+                      <tr>
+                        <td>Conjunction
+                        <td>
+                            <code>/\
+                      <tr>
+                        <td>Disjunction
+                        <td>
+                            <code>\/
+                      <tr>
+                        <td>Implication
+                        <td>
+                            <code>->
+                      <tr>
+                        <td>Falsum
+                        <td>
+                            <code>_|_
+            <li>For rule labels, use the connective plus <code>I</code> for introductions or <code>E</code> for eliminations. For disjunction introductions and conjunction eliminations, you should add in addition an <code>L</code> or <code>R</code> as appropriate.
+            <li>For discharging rules (that's <code>#{ruleName $ RU (II "")}</code>, <code>#{ruleName $ RU (NI "")}</code>, and <code>#{ruleName $ RT (DE "")}</code>), add a numeral to the end of the rule name as a discharge marker. For example, you might use <code>#{ruleName $ RU (II "5")}</code> or <code>#{ruleName $ RT (DE "23")}</code>.
+            <li>To discharge an assumption, make an empty node above it, and put an appropriate discharge numeral (on its own) as the rule label.
+            <li>Press <code>Enter</code> to create a new sibling node.
+            <li>Press <code>Ctrl-Enter</code> to create a new parent node.
+            <li>Press <code>Ctrl-Shift-Enter</code> to create a new child node.
+            <li>Cycle nodes with <code>Tab</code> and <code>Shift-Tab</code>.
+            <li>Undo and Redo changes with <code>Ctrl-Z</code> and <code>Ctrl-Shift-Z</code>.
+            <li>Delete subtrees with <code>Ctrl-Backspace</code>.
+            <li>Cut, Copy, and Paste subtrees with <code>Shift-Ctrl-X</code>, <code>Shift-Ctrl-C</code>, and <code>Shift-Ctrl-V</code>
+            <li>Finally, if you run into bugs or difficulties, please let me know! Screenshots are very much appreciated.

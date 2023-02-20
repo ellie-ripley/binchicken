@@ -1,0 +1,26 @@
+    <div .container>
+        <div .row>
+            <h3 .header>
+                Register here!
+        <div .row>
+            <div .col-lg-12>
+                <p>Registration is currently down for maintenance.
+
+<!--
+<div .container>
+    $maybe rf <- submission
+        <div .row>
+            <div .col-lg-12>
+                <p>Adding user #{show rf}
+
+    <div .row>
+        <div .col-lg-12>
+            <form .form-horizontal method=post action=@{RegisterR} enctype=#{formEnctype}>
+                ^{formWidget}
+                <button .btn.btn-primary type="submit">
+                    Submit
+
+    <div .row>
+        <div .col-lg-12>
+            <p>#{show newUser}
+-->

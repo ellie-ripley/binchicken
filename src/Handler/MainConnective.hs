@@ -1,0 +1,106 @@
+{-# LANGUAGE DeriveGeneric#-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeFamilies #-}
+module Handler.MainConnective where
+
+import ExerciseType ( ExerciseType(IdentifyMainConnective) )
+import Foundation ( Route(MainConnectiveR), Handler )
+import Import.NoFoundation
+    ( fst,
+      snd,
+      ($),
+      Eq((==)),
+      Show(show),
+      Generic,
+      Maybe(..),
+      FromJSON,
+      Value,
+      ToJSON(toJSON),
+      Text,
+      MonadIO(liftIO),
+      (++),
+      map,
+      pack,
+      insertEntity,
+      getCurrentTime,
+      parseCheckJsonBody,
+      returnJson,
+      setTitle,
+      (.),
+      Html,
+      Yesod(defaultLayout),
+      YesodPersist(runDB),
+      widgetFile,
+      Attempt(..),
+      YesodAuth(maybeAuthId) )
+import Text.Julius (RawJS (..))
+import Data.Aeson (Result(..), (.=), object)
+
+import Handler.LoginCheck (loginNotifyW)
+import Logic.Formulas (Connective(..), NullaryConnective(..), UnaryConnective(..), BinaryConnective(..), Formula, displayConnective, displayFormula, displayMaybeConnective, mainConnective, nameConnective)
+import Logic.Random (randomFormulaIO)
+import Settings.Binchicken (RandomFormulaSettings(..), defaultRandomFormulaSettings)
+
+data IMCAttempt =
+  IMCAttempt { imcFormula :: Formula
+             , imcResponse :: Maybe Connective
+             } deriving (Generic)
+
+instance ToJSON IMCAttempt
+instance FromJSON IMCAttempt
+
+setts :: RandomFormulaSettings
+setts = defaultRandomFormulaSettings IdentifyMainConnective
+
+mcConns :: [Connective]
+mcConns = map CN (rfNullaryConns setts :: [NullaryConnective]) -- type signature suppresses erroneous warning
+            ++ map CU (rfUnaryConns setts)
+            ++ map CB (rfBinaryConns setts)
+
+getMainConnectiveR :: Handler Html
+getMainConnectiveR = do
+    let buttonList = buttons
+        displayFormulaId = "js-display-formula" :: Text
+        displayResultId = "js-display-result" :: Text
+        noMcButtonLabel = "js-button-no-main-connective" :: Text
+        buttonsId = "js-response-buttons" :: Text
+        nuttin = Nothing :: Maybe Connective
+    (formula :: Formula) <- liftIO $ randomFormulaIO setts
+    defaultLayout $ do
+        setTitle "Identify the main connective"
+        $(widgetFile "main-connective")
+
+postMainConnectiveR :: Handler Value
+postMainConnectiveR = do
+    tryIMC <- (parseCheckJsonBody :: Handler (Result IMCAttempt))
+    case tryIMC of
+      Error err -> returnJson err
+      Success imcAttempt -> do
+        let corr = mainConnective (imcFormula imcAttempt) == imcResponse imcAttempt
+            attempt = Attempt { attemptUserId = Nothing
+                              , attemptExerciseType = IdentifyMainConnective
+                              , attemptIsCorrect = corr
+                              , attemptExerciseContent = Just (pack . show . imcFormula $ imcAttempt)
+                              , attemptSubmittedResponse = case imcResponse imcAttempt of
+                                  Nothing -> Nothing
+                                  Just con -> Just (pack $ show con)
+                              , attemptSubmittedAt = Nothing
+                              }
+            responseObj = object [ "rformula" .= (displayFormula $ imcFormula imcAttempt)
+                                 , "rconn" .= (displayMaybeConnective $ imcResponse imcAttempt)
+                                 ]
+        maybeCurrentUserId <- maybeAuthId
+        case maybeCurrentUserId of
+            Just uid -> do
+                now <- liftIO getCurrentTime
+                let attempt' = attempt { attemptUserId = Just uid, attemptSubmittedAt = Just now }
+                insertedAttempt <- runDB $ insertEntity attempt'
+                returnJson (insertedAttempt, responseObj)
+            Nothing -> returnJson (attempt, responseObj)
+
+buttons :: [(Text, Connective)]
+buttons = map (\c -> ("js-button-" ++ nameConnective c, c)) mcConns

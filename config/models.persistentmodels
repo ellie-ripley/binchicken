@@ -3,7 +3,8 @@
 
 User
     ident Text
-    password Text Maybe
+    surname Text
+    idNumber Text
     UniqueUser ident
     deriving Typeable
 Email
@@ -11,8 +12,11 @@ Email
     userId UserId Maybe
     verkey Text Maybe
     UniqueEmail email
-Comment json -- Adding "json" causes ToJSON and FromJSON instances to be derived.
-    message Text
+
+Attempt json
     userId UserId Maybe
-    deriving Eq
-    deriving Show
+    exerciseType ExerciseType
+    isCorrect Bool
+    exerciseContent Text Maybe
+    submittedResponse Text Maybe
+    submittedAt UTCTime Maybe default=CURRENT_TIMESTAMP

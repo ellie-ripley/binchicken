@@ -1,0 +1,30 @@
+<div .container>
+    ^{loginNotifyW}
+    <div .row>
+        <h2>Evaluate in the Dunn-Belnap structure
+    <div .row>
+        <p>Here is a random formula!
+        <p ##{displayFormulaId}.oblang>#{displayFormula formula}
+    <div .row>
+      <div .col-lg-12>
+        <p>And here is a random Dunn-Belnap valuation!
+        <table ##{displayValuationId}>
+            <thead>
+                <tr>
+                    <th>Atomic
+                    <th>Value
+            <tbody>
+                $forall (a, v) <- Map.toAscList dbval
+                    <tr>
+                        <td .oblang>#{displayAtomic a}
+                        <td>#{displayVal v}
+    <div .row>
+        <div .col-lg-12>
+            What value does this formula have on this valuation?
+    <div .row>
+        <div .col-lg-12 ##{buttonsID}>
+            $forall butt <- buttonList
+                <button .btn.btn-primary.oblang ##{fst butt}>#{displayVal $ snd butt}
+    <div .row>
+        <div .col-lg-12>
+            <p ##{displayResultId}>

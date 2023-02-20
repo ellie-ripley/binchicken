@@ -1,0 +1,97 @@
+function reportAnswer(data) {
+    if (data[0].isCorrect) {
+      if (data[1].rconn === "Nothing") {
+        document.getElementById("#{rawJS displayResultId}").innerHTML =
+          "Right answer! The formula <span class='oblang'>"
+            + data[1].rformula
+            + "</span> indeed has no main connective, since it is atomic."
+      } else {
+        document.getElementById("#{rawJS displayResultId}").innerHTML =
+          "Right answer! The main connective of <span class='oblang'>"
+            + data[1].rformula
+            + "</span> is indeed <span class='oblang'>"
+            + data[1].rconn
+            + "</span>.";
+      }
+      document.getElementById("#{rawJS buttonsId}").innerHTML = "";
+    } else {
+      if (data[1].rconn === "Nothing"){
+        document.getElementById("#{rawJS displayResultId}").innerHTML =
+          "Wrong answer! The formula <span class='oblang'>"
+            + data[1].rformula
+            + "</span> does have a main connective."
+      } else {
+        document.getElementById("#{rawJS displayResultId}").innerHTML =
+          "Wrong answer! The formula <span class='oblang'>"
+            + data[1].rformula
+            + "</span> does not have <span class='oblang'>"
+            + data[1].rconn
+            + "</span> as main connective.";
+      }
+    }
+    document.getElementById("#{rawJS displayResultId}").innerHTML +=
+      '<p><button class="btn btn-primary" onClick="window.location.reload(true)">Next formula</button></p>'
+}
+
+function logError(data) {
+    console.log("Error reporting response.");
+}
+
+$(function() {
+  $("#js-button-negation").click(function() {
+    // Make an AJAX request to the server to create a new attempt
+    $.ajax({
+      url: '@{MainConnectiveR}',
+      type: 'POST',
+      contentType: "application/json",
+      data: JSON.stringify({
+        imcFormula: #{toJSON formula},
+        imcResponse: #{toJSON $ Just (CU Negation)}
+      }),
+      success: reportAnswer,
+      error: logError
+    });
+  });
+
+  $("#js-button-conjunction").click(function() {
+    $.ajax({
+      url: '@{MainConnectiveR}',
+      type: 'POST',
+      contentType: "application/json",
+      data: JSON.stringify({
+        imcFormula: #{toJSON formula},
+        imcResponse: #{toJSON $ Just (CB Conjunction)}
+      }),
+      success: reportAnswer,
+      error: logError
+    });
+  });
+
+  $("#js-button-disjunction").click(function() {
+    $.ajax({
+      url: '@{MainConnectiveR}',
+      type: 'POST',
+      contentType: "application/json",
+      data: JSON.stringify({
+        imcFormula: #{toJSON formula},
+        imcResponse: #{toJSON $ Just (CB Disjunction)}
+      }),
+      success: reportAnswer,
+      error: logError
+    });
+  });
+
+  $("##{rawJS noMcButtonLabel}").click(function() {
+    $.ajax({
+      url: '@{MainConnectiveR}',
+      type: 'POST',
+      contentType: "application/json",
+      data: JSON.stringify({
+        imcFormula: #{toJSON formula},
+        imcReponse: #{toJSON nuttin}
+      }),
+      success: reportAnswer,
+      error: logError
+    });
+  });
+});

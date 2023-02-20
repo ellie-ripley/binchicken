@@ -23,7 +23,50 @@ module Application
 import Control.Monad.Logger                 (liftLoc, runLoggingT)
 import Database.Persist.Sqlite              (createSqlitePool, runSqlPool,
                                              sqlDatabase, sqlPoolSize)
-import Import
+import Foundation
+    ( Route(..),
+      BinChicken(..),
+      Handler,
+      resourcesBinChicken,
+      unsafeHandler )
+import Import.NoFoundation
+    ( ($),
+      Monad((>>=), return),
+      Show(show),
+      Bool(True),
+      Int,
+      IO,
+      flip,
+      error,
+      when,
+      ReaderT,
+      SqlBackend,
+      (++),
+      runMigration,
+      defaultMiddlewaresNoLogging,
+      toWaiAppPlain,
+      mkYesodDispatch,
+      static,
+      staticDevel,
+      (.),
+      Default(def),
+      LogLevel(LevelError),
+      Application,
+      Yesod(messageLoggerSource),
+      YesodPersist(runDB),
+      loadYamlSettings,
+      loadYamlSettingsArgs,
+      useEnv,
+      configSettingsYml,
+      develMainHelper,
+      getDevSettings,
+      makeYesodLogger,
+      loggerSet,
+      AppSettings(appMutableStatic, appStaticDir, appDatabaseConf,
+                  appDetailedRequestLogging, appIpFromHeader, appPort, appHost),
+      configSettingsYmlValue,
+      migrateAll,
+      getAuth )
 import Language.Haskell.TH.Syntax           (qLocation)
 import Network.HTTP.Client.TLS              (getGlobalManager)
 import Network.Wai (Middleware)
@@ -40,21 +83,38 @@ import System.Log.FastLogger                (defaultBufSize, newStdoutLoggerSet,
 
 -- Import all relevant handler modules here.
 -- Don't forget to add new modules to your cabal file!
-import Handler.Common
-import Handler.Home
-import Handler.Comment
-import Handler.Profile
+import Handler.Common ( getFaviconR, getRobotsR )
+import Handler.Home ( getHomeR )
+import Handler.Profile ( getProfileR )
+import Handler.Register ( getRegisterR, postRegisterR )
+import Handler.Exercises ( getExercisesR )
+import Handler.DummyExercise
+    ( getDummyExerciseR, postDummyExerciseR )
+import Handler.MainConnective
+    ( getMainConnectiveR, postMainConnectiveR )
+import Handler.EvalBoolean ( getEvalBooleanR, postEvalBooleanR )
+import Handler.EvalStrongKleene (getEvalStrongKleeneR, postEvalStrongKleeneR )
+import Handler.EvalDunnBelnap (getEvalDunnBelnapR, postEvalDunnBelnapR)
+import Handler.CounterexClassical (getCounterexClassicalR, postCounterexClassicalR)
+import Handler.CounterexNonclassical (getCounterexNonclassicalR, postCounterexNonclassicalR)
+import Handler.Progress ( getProgressR )
+import Handler.ProofRequirements ( getProofRequirementsR, postProofRequirementsR )
+import Handler.ProofIntuitionistic ( getProofIntuitionisticR, postProofIntuitionisticR )
+import Handler.ProofNormalize ( getProofNormalizeR, postProofNormalizeR )
+import Handler.CounterexIntuitionistic ( getCounterexIntuitionisticR, postCounterexIntuitionisticR )
+import Handler.ProofPlayground ( getProofPlaygroundR, postProofPlaygroundR )
+import Handler.Summary ( getSummaryR )
 
 -- This line actually creates our YesodDispatch instance. It is the second half
 -- of the call to mkYesodData which occurs in Foundation.hs. Please see the
 -- comments there for more details.
-mkYesodDispatch "App" resourcesApp
+mkYesodDispatch "BinChicken" resourcesBinChicken
 
 -- | This function allocates resources (such as a database connection pool),
 -- performs initialization and returns a foundation datatype value. This is also
 -- the place to put your migrate statements to have automatic database
 -- migrations handled by Yesod.
-makeFoundation :: AppSettings -> IO App
+makeFoundation :: AppSettings -> IO BinChicken
 makeFoundation appSettings = do
     -- Some basic initializations: HTTP connection manager, logger, and static
     -- subsite.
@@ -69,7 +129,7 @@ makeFoundation appSettings = do
     -- logging function. To get out of this loop, we initially create a
     -- temporary foundation without a real connection pool, get a log function
     -- from there, and then create the real foundation.
-    let mkFoundation appConnPool = App {..}
+    let mkFoundation appConnPool = BinChicken {..}
         -- The App {..} syntax is an example of record wild cards. For more
         -- information, see:
         -- https://ocharles.org.uk/blog/posts/2014-12-04-record-wildcards.html
@@ -89,14 +149,14 @@ makeFoundation appSettings = do
 
 -- | Convert our foundation to a WAI Application by calling @toWaiAppPlain@ and
 -- applying some additional middlewares.
-makeApplication :: App -> IO Application
+makeApplication :: BinChicken -> IO Application
 makeApplication foundation = do
     logWare <- makeLogWare foundation
     -- Create the WAI application and apply middlewares
     appPlain <- toWaiAppPlain foundation
     return $ logWare $ defaultMiddlewaresNoLogging appPlain
 
-makeLogWare :: App -> IO Middleware
+makeLogWare :: BinChicken -> IO Middleware
 makeLogWare foundation =
     mkRequestLogger def
         { outputFormat =
@@ -111,7 +171,7 @@ makeLogWare foundation =
 
 
 -- | Warp settings for the given foundation value.
-warpSettings :: App -> Settings
+warpSettings :: BinChicken -> Settings
 warpSettings foundation =
       setPort (appPort $ appSettings foundation)
     $ setHost (appHost $ appSettings foundation)
@@ -165,7 +225,7 @@ appMain = do
 --------------------------------------------------------------
 -- Functions for DevelMain.hs (a way to run the app from GHCi)
 --------------------------------------------------------------
-getApplicationRepl :: IO (Int, App, Application)
+getApplicationRepl :: IO (Int, BinChicken, Application)
 getApplicationRepl = do
     settings <- getAppSettings
     foundation <- makeFoundation settings
@@ -173,7 +233,7 @@ getApplicationRepl = do
     app1 <- makeApplication foundation
     return (getPort wsettings, foundation, app1)
 
-shutdownApp :: App -> IO ()
+shutdownApp :: BinChicken -> IO ()
 shutdownApp _ = return ()
 
 

@@ -7,8 +7,29 @@
 /favicon.ico FaviconR GET
 /robots.txt RobotsR GET
 
-/ HomeR GET POST
+/ HomeR GET
 
-/comments CommentR POST
+/register RegisterR GET POST
 
 /profile ProfileR GET
+
+-- Pages for overview
+/exercises ExercisesR GET
+/progress ProgressR GET
+
+-- Exercise pages
+/dummy-exercise DummyExerciseR GET POST
+/identify-main-connective MainConnectiveR GET POST
+/evaluate-boolean EvalBooleanR GET POST
+/evaluate-strong-kleene EvalStrongKleeneR GET POST
+/evaluate-dunn-belnap EvalDunnBelnapR GET POST
+/counterexample-classical CounterexClassicalR GET POST
+/counterexample-nonclassical CounterexNonclassicalR GET POST
+/proof-requirements ProofRequirementsR GET POST
+/intuitionistic-proof ProofIntuitionisticR GET POST
+/normalize-proof ProofNormalizeR GET POST
+/intuitionistic-counterexample CounterexIntuitionisticR GET POST
+
+-- Other pages
+/proof-playground ProofPlaygroundR GET POST
+/temperature-coerce-fireplace-lead SummaryR GET

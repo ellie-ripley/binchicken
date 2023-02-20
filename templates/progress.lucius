@@ -1,0 +1,21 @@
+.ex-progress-list {
+    padding-left: 1rem;
+}
+
+.ex-progress {
+    background-color: #66809a88;
+    margin: .5rem;
+    padding-top: .5rem;
+    padding-bottom: .5rem;
+    padding-left: 2rem;
+    border-radius: 1rem;
+}
+
+.progress-badge {
+    width: 7rem;
+    filter: opacity(50%) blur(.1rem);
+}
+
+.progress-badge.complete {
+    filter: opacity(100%) drop-shadow(5px 5px 5px green);
+}

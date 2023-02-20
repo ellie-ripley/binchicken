@@ -1,0 +1,80 @@
+var prf = document.getElementById("#{rawJS proofId}");
+
+
+var root1 = new ProofRoot(
+{
+  "label": #{displayFormula startingConclusion},
+  "rule": "",
+  "forest": [
+    {
+      "label": "",
+      "rule": "",
+      "forest": []
+    }
+  ]
+});
+
+root1.renderOn(prf);
+
+var prf2 = document.getElementById("#{rawJS proofIdPrefix}".concat("2"));
+
+if (prf2) {
+  console.log("Got it!");
+  var root2 = new ProofRoot(
+  {
+    "label": #{displayFormula startingConclusion},
+    "rule": "",
+    "forest": []
+  });
+  root2.renderOn(prf2);
+} else {
+  console.log("Don't got it!");
+}
+
+
+function reportAnswer(data) {
+  console.log("Success!");
+  console.log(data);
+  const fb = document.getElementById("#{rawJS feedbackId}");
+  fb.innerHTML = "";
+  if ("feedback" in data[1])
+  {
+    fb.innerHTML = data[1].feedback;
+  }
+  if (data[0].isCorrect) {
+    document.getElementById("#{rawJS buttonDivId}").innerHTML = "";
+  }
+  fb.innerHTML +=
+    '<p><button class="btn btn-primary" onClick="window.location.reload(true)">Next exercise</button></p>'
+}
+
+function logError(data) {
+  console.log("Error reporting response.");
+  console.log(data);
+}
+
+$(function() {
+  $("##{rawJS buttonSubmitId}").click(function() {
+    var ajaxData;
+    if (prf2) {
+      ajaxData = JSON.stringify({
+        pExContentPost: #{pExContentPost},
+        pExSubmittedProof: root1,
+        pExSecondProof: root2
+      });
+    } else {
+      ajaxData = JSON.stringify({
+        pExContentPost: #{pExContentPost},
+        pExSubmittedProof: root1
+      });
+    }
+    $.ajax({
+      url: '@{ajaxRoute}',
+      type: 'POST',
+      contentType: "application/json",
+      data: ajaxData,
+      success: reportAnswer,
+      error: logError
+    });
+  });
+});

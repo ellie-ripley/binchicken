@@ -1,0 +1,15 @@
+<div .container>
+    ^{loginNotifyW}
+    <div .row>
+        <h2>Identify the main connective
+    <div .row>
+        <p>Here is a random formula!
+        <p ##{displayFormulaId}.oblang>#{displayFormula formula}
+    <div .row>
+        <div .col-lg-12 ##{buttonsId}>
+            $forall butt <- buttonList
+                <button .btn.btn-primary.oblang ##{fst butt}>#{displayConnective $ snd butt}
+            <button .btn.btn-primary ##{noMcButtonLabel}>No main connective
+    <div .row>
+        <div .col-lg-12>
+            <p ##{displayResultId}>
