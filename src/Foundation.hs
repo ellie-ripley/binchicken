@@ -110,6 +110,7 @@ import Yesod.Core.Types     (Logger)
 import qualified Yesod.Core.Unsafe as Unsafe
 import qualified Data.CaseInsensitive as CI
 import qualified Data.Text.Encoding as TE
+import qualified Data.Password.Bcrypt as BC
 
 
 -- | The foundation datatype for your application. This can be a good place to
@@ -394,14 +395,15 @@ isAdmin = do
 instance YesodAuthPersist BinChicken
 
 instance YesodAuthBinLogin BinChicken where
-  doesUserExist emal pwh = do
+  doesUserExist emal pw = do
     mUser <- liftHandler $ runDB $ getBy (UniqueUser emal)
     case mUser of
       Nothing -> return False
-      Just (Entity _ (User _ p)) ->
-        if p == pwh
-        then return True
-        else return False
+      Just (Entity _ (User _ pwh)) ->
+        case BC.checkPassword (BC.mkPassword pw) (BC.PasswordHash pwh) of
+          BC.PasswordCheckSuccess -> return True
+          BC.PasswordCheckFail -> return False
+
 
 -- This instance is required to use forms. You can modify renderMessage to
 -- achieve customized and internationalized form validation messages.

@@ -34,9 +34,11 @@ binLoginR :: AuthRoute
 binLoginR = PluginR "binLogin" ["login"]
 
 class (YesodAuth site) => YesodAuthBinLogin site where
-  -- | check whether login info works (email, password)
+  -- | check whether login info works
   doesUserExist :: (MonadHandler m, HandlerSite m ~ site)
-                => Text -> Text -> m Bool
+                => Text  -- ^ email address to check
+                -> Text  -- ^ password (unhashed!) to check
+                -> m Bool
 
 binLogin :: YesodAuthBinLogin m => AuthPlugin m
 binLogin =

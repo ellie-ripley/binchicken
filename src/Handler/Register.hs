@@ -9,7 +9,7 @@ module Handler.Register where
 import Import
 import Yesod.Form.Bootstrap3 (BootstrapFormLayout (..), renderBootstrap3)
 import Text.Email.Validate (isValid)
-
+import qualified Data.Password.Bcrypt as BC
 
 -- Define our data that will be used for creating the form.
 data RegistrationForm = RegistrationForm
@@ -47,7 +47,7 @@ displaySubmissionStatus :: SubmissionStatus -> Text
 displaySubmissionStatus = \case
   Success _  -> "Success!"
   NotAnEmail tx -> tx <> " is not an email address"
-  Failure    -> "Failed to register; probably the email is taken already"
+  Failure    -> "Failed to register; probably there is already an account with that email address"
   PwMismatch -> "Passwords did not match"
 
 postRegisterR :: Handler Html
@@ -57,11 +57,13 @@ postRegisterR = do
                               <*> ireq textField "password"
                               <*> ireq textField "confirm")
 
+
     subStat <- if not . isValid $ encodeUtf8 emal
                then return $ NotAnEmail emal
                else if pw /= pwc
                     then return PwMismatch
-                    else do attempt <- runDB . insertUnique $ (User emal pw)
+                    else do pwhash <- BC.unPasswordHash <$> BC.hashPassword (BC.mkPassword pw)
+                            attempt <- runDB . insertUnique $ User emal pwhash
                             case attempt of
                                         Just ky -> return (Success ky)
                                         Nothing -> return Failure
