@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
@@ -26,9 +27,9 @@ data RegistrationForm = RegistrationForm
 getRegisterR :: Handler Html
 getRegisterR = do
     (formWidget, formEnctype) <- generateFormPost sampleForm
-    let submission = Nothing :: Maybe RegistrationForm
-        newUser = NoAttempt
+    let successMessage = Nothing :: Maybe Text
 
+    request <- getRequest
     defaultLayout $ do
         setTitle "Registration"
         $(widgetFile "register")
@@ -36,25 +37,32 @@ getRegisterR = do
 data SubmissionStatus =
     Success (Key User)
   | Failure
-  | NoAttempt
+  | PwMismatch
   deriving (Show)
+
+displaySubmissionStatus :: SubmissionStatus -> Text
+displaySubmissionStatus = \case
+  Success _  -> "Success!"
+  Failure    -> "Failed to register; probably the email is taken already"
+  PwMismatch -> "Passwords did not match"
 
 postRegisterR :: Handler Html
 postRegisterR = do
-    ((result, formWidget), formEnctype) <- runFormPost sampleForm
-    let submission = case result of
-            FormSuccess rform -> Just rform
-            _ -> Nothing
+    (emal, pw, pwc) <- runInputPost
+                        ((,,) <$> ireq textField "email"
+                              <*> ireq textField "password"
+                              <*> ireq textField "confirm")
 
-    newUser <- case submission of
-                 Just rform -> do
-                   attempt <- runDB . insertUnique $ (User (newUserEmail rform)
-                                                           (newUserPassword rform))
-                   case attempt of
-                     Just ky -> return (Success ky)
-                     Nothing -> return Failure
-                 Nothing -> return NoAttempt
+    subStat <- if pw == pwc
+                  then do
+                        attempt <- runDB . insertUnique $ (User emal pw)
+                        case attempt of
+                          Just ky -> return (Success ky)
+                          Nothing -> return Failure
+               else return PwMismatch
+    let successMessage = Just $ displaySubmissionStatus subStat
 
+    request <- getRequest
     defaultLayout $ do
         setTitle "Registration"
         $(widgetFile "register")

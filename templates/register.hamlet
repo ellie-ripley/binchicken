@@ -4,23 +4,33 @@
                 Register here!
         <div .row>
             <div .col-lg-12>
-                <p>Registration is currently down for maintenance.
+                <p>Register here. Note that there is no automated password recovery---if you forget your password, you will need to email me, and I'll sort it out manually! So please don't forget your password.
 
-<!--
 <div .container>
-    $maybe rf <- submission
+    $maybe mess <- successMessage
         <div .row>
             <div .col-lg-12>
-                <p>Adding user #{show rf}
+                <p>#{mess}
 
     <div .row>
         <div .col-lg-12>
-            <form .form-horizontal method=post action=@{RegisterR} enctype=#{formEnctype}>
-                ^{formWidget}
-                <button .btn.btn-primary type="submit">
-                    Submit
+            <form .form-horizontal method=post action=@{RegisterR}>
+                <!--^{formWidget}-->
+                $maybe t <- reqToken request
+                    <input type=hidden name=#{defaultCsrfParamName} value=#{t}>
+                    <table>
+                        <tr>
+                        <th>Email
+                        <td>
+                            <input type=text name=email required>
+                        <tr>
+                        <th>Password
+                        <td>
+                            <input type=password name=password required>
+                        <tr>
+                        <th>Confirm password
+                        <td>
+                            <input type=password name=confirm required>
+                    <button .btn.btn-primary type="submit">
+                        Submit
 
-    <div .row>
-        <div .col-lg-12>
-            <p>#{show newUser}
--->

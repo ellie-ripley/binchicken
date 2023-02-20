@@ -70,7 +70,7 @@ postBinLoginR :: YesodAuthBinLogin site => AuthHandler site TypedContent
 postBinLoginR = do
   (emal, pw) <- runInputPost
         ((,) <$> ireq textField "email"
-              <*> ireq textField "password")
+             <*> ireq textField "password")
   isValid <- doesUserExist emal pw
   if isValid
   then setCredsRedirect (Creds "binLogin" emal [])
