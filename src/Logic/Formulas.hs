@@ -100,11 +100,10 @@ instance (FromJSON a) => FromJSON (GenFormula a)
 type Formula = GenFormula Atomic
 
 instance Applicative GenFormula where
-    pure = return
+    pure = A
     (<*>) = ap
 
 instance Monad GenFormula where
-    return = A
     f >>= fun =
       case f of
         (A a) -> fun a
