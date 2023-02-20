@@ -28,28 +28,28 @@ stanzas:
       # You can specify one or more hostnames for your application to respond
       # to. The primary hostname will be used for generating your application
       # root.
-      - www.binchicken.com
+      - binchicken.one
 
     # Enable to force Keter to redirect to https
     # Can be added to any stanza
-    requires-secure: false
+    requires-secure: true
 
   # Static files.
   - type: static-files
     hosts:
-      - static.binchicken.com
+      - binchicken.one
     root: ../static
 
     # Uncomment to turn on directory listings.
     # directory-listing: true
 
-  # Redirect plain domain name to www.
+  # Redirect www domain name to plain.
   - type: redirect
 
     hosts:
-      - binchicken.com
+      - www.binchicken.one
     actions:
-      - host: www.binchicken.com
+      - host: binchicken.one
         # secure: false
         # port: 80
 
