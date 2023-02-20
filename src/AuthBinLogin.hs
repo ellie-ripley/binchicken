@@ -60,7 +60,7 @@ binLogin =
                 <tr>
                   <th>Password
                   <td>
-                    <input type="text" name="password" required>
+                    <input type="password" name="password" required>
                 <tr>
                   <td colspan="2">
                     <button type="submit" .btn .btn-success>_{Msg.LoginTitle}
@@ -74,4 +74,4 @@ postBinLoginR = do
   isValid <- doesUserExist emal pw
   if isValid
   then setCredsRedirect (Creds "binLogin" emal [])
-  else loginErrorMessageI LoginR (Msg.IdentifierNotFound emal)
+  else loginErrorMessageI LoginR Msg.InvalidUsernamePass
