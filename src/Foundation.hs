@@ -11,6 +11,8 @@
 
 module Foundation where
 
+import Data.Kind (Type)
+
 import Import.NoFoundation
     ( snd,
       ($),
@@ -22,7 +24,6 @@ import Import.NoFoundation
       Either,
       (<$>),
       flip,
-      (&&),
       (||),
       Text,
       ReaderT,
@@ -95,9 +96,7 @@ import Import.NoFoundation
       YesodAuth(maybeAuthId, authPlugins, authenticate,
                 redirectToReferer, logoutDest, loginDest, AuthId),
       YesodAuthPersist (getAuthEntity),
-      Auth,
-      not,
-      fst)
+      Auth)
 import Database.Persist.Sql (ConnectionPool, runSqlPool)
 import Text.Hamlet          (hamletFile)
 import Text.Jasmine         (minifym)
@@ -153,7 +152,7 @@ mkYesodData "BinChicken" $(parseRoutesFile "config/routes.yesodroutes")
 type Form x = Html -> MForm (HandlerFor BinChicken) (FormResult x, Widget)
 
 -- | A convenient synonym for database access functions.
-type DB a = forall (m :: * -> *).
+type DB a = forall (m :: Type -> Type).
     (MonadUnliftIO m) => ReaderT SqlBackend m a
 
 -- Please see the documentation for the Yesod typeclass. There are a number
