@@ -26,7 +26,7 @@ data RegistrationForm = RegistrationForm
 -- inclined, or create a single monolithic file.
 getRegisterR :: Handler Html
 getRegisterR = do
-    (formWidget, formEnctype) <- generateFormPost sampleForm
+    -- (formWidget, formEnctype) <- generateFormPost sampleForm
     let successMessage = Nothing :: Maybe Text
 
     request <- getRequest
