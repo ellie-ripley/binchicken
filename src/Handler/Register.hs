@@ -63,7 +63,7 @@ postRegisterR = do
                else if pw /= pwc
                     then return PwMismatch
                     else do pwhash <- BC.unPasswordHash <$> BC.hashPassword (BC.mkPassword pw)
-                            attempt <- runDB . insertUnique $ User emal pwhash
+                            attempt <- runDB . insertUnique $ User emal (Just pwhash) Nothing False
                             case attempt of
                                         Just ky -> return (Success ky)
                                         Nothing -> return Failure

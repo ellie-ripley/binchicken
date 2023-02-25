@@ -49,6 +49,7 @@ dependencies:
 - esqueleto
 - email-validate
 - password
+- mime-mail
 - mime-mail-ses
 
 # The library contains all of our application code. The executable

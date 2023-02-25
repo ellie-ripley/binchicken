@@ -1,5 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies #-}
@@ -50,6 +51,13 @@ import Import.NoFoundation
       defaultGetDBRunner,
       base64md5,
       (.),
+      fmap,
+      join,
+      (=.),
+      unpack,
+      liftIO,
+      get,
+      putStrLn,
       LByteString,
       Html,
       HasHttpManager(..),
@@ -86,7 +94,7 @@ import Import.NoFoundation
                   appShouldLogAll),
       widgetFile,
       UserId,
-      User(User, userEmail),
+      User(User, userEmail, userPassHash),
       img_binchicken_jpg,
       getAuth,
       maybeAuthPair,
@@ -96,13 +104,27 @@ import Import.NoFoundation
       YesodAuth(maybeAuthId, authPlugins, authenticate,
                 redirectToReferer, logoutDest, loginDest, AuthId),
       YesodAuthPersist (getAuthEntity),
-      Auth)
-import Database.Persist.Sql (ConnectionPool, runSqlPool)
-import Text.Hamlet          (hamletFile)
+      Auth,
+      EntityField(..),
+      userVerkey,
+      userPassHash)
+import Database.Persist.Sql (ConnectionPool, insert, runSqlPool, update)
+import Text.Blaze.Html.Renderer.Text (renderHtml)
+import Text.Hamlet          (hamletFile, shamlet)
 import Text.Jasmine         (minifym)
 import Control.Monad.Logger (LogSource)
 
-import AuthBinLogin (YesodAuthBinLogin(..), binLogin)
+import Network.Mail.Mime ( Address(..)
+                         , Disposition(..)
+                         , Encoding(..)
+                         , Mail(..)
+                         , Part(..)
+                         , PartContent(..)
+                         , emptyMail
+                         )
+import Network.Mail.Mime.SES
+import Text.Shakespeare.Text (stext)
+import Yesod.Auth.Email
 
 import Yesod.Auth.Message   (AuthMessage(..))
 import Yesod.Default.Util   (addStaticContentExternal)
@@ -110,7 +132,9 @@ import Yesod.Core.Types     (Logger)
 import qualified Yesod.Core.Unsafe as Unsafe
 import qualified Data.CaseInsensitive as CI
 import qualified Data.Text.Encoding as TE
+import qualified Data.Text.Lazy.Encoding as TEL
 import qualified Data.Password.Bcrypt as BC
+import Network.Mail.Mime.SES (SES)
 
 
 -- | The foundation datatype for your application. This can be a good place to
@@ -344,6 +368,84 @@ instance YesodPersistRunner BinChicken where
     getDBRunner :: Handler (DBRunner BinChicken, Handler ())
     getDBRunner = defaultGetDBRunner appConnPool
 
+sesCreds :: SES
+sesCreds = let x = x in x
+
+instance YesodAuthEmail BinChicken where
+    type AuthEmailId BinChicken = UserId
+
+    afterPasswordRoute _ = HomeR
+
+    addUnverified email verkey =
+        liftHandler $ runDB $ insert $ User email Nothing (Just verkey) False
+
+    sendVerifyEmail email _ verurl = do
+        -- Print out to the console the verification email, for easier
+        -- debugging.
+        liftIO $ putStrLn $ "Copy/ Paste this URL in your browser: " ++ verurl
+
+        -- Send email.
+        liftIO $ renderSendMailSESGlobal sesCreds (emptyMail $ Address Nothing "noreply")
+            { mailTo = [Address Nothing email]
+            , mailHeaders =
+                [ ("Subject", "Verify your email address")
+                ]
+            , mailParts = [[textPart, htmlPart]]
+            }
+      where
+        textPart = Part
+            { partType = "text/plain; charset=utf-8"
+            , partEncoding = None
+            , partDisposition = DefaultDisposition
+            , partContent = PartContent $  TEL.encodeUtf8
+                [stext|
+                    Please confirm your email address by clicking on the link below.
+
+                    #{verurl}
+
+                    Thank you
+                |]
+            , partHeaders = []
+            }
+        htmlPart = Part
+            { partType = "text/html; charset=utf-8"
+            , partEncoding = None
+            , partDisposition = DefaultDisposition
+            , partContent = PartContent . TEL.encodeUtf8 $ renderHtml
+                [shamlet|
+                    <p>Please confirm your email address by clicking on the link below.
+                    <p>
+                        <a href=#{verurl}>#{verurl}
+                    <p>Thank you
+                |]
+            , partHeaders = []
+            }
+    getVerifyKey = liftHandler . runDB . fmap (join . fmap userVerkey) . get
+    setVerifyKey uid key = liftHandler $ runDB $ update uid [UserVerkey =. Just key]
+    verifyAccount uid = liftHandler $ runDB $ do
+        mu <- get uid
+        case mu of
+            Nothing -> return Nothing
+            Just u -> do
+                update uid [UserVerified =. True, UserVerkey =. Nothing]
+                return $ Just uid
+    getPassword = liftHandler . runDB . fmap (join . fmap userPassHash) . get
+    setPassword uid pass = liftHandler . runDB $ update uid [UserPassHash =. Just pass]
+    getEmailCreds email = liftHandler $ runDB $ do
+        mu <- getBy $ UniqueUser email
+        case mu of
+            Nothing -> return Nothing
+            Just (Entity uid u) -> return $ Just EmailCreds
+                { emailCredsId = uid
+                , emailCredsAuthId = Just uid
+                , emailCredsStatus = isJust $ userPassHash u
+                , emailCredsVerkey = userVerkey u
+                , emailCredsEmail = email
+                }
+    getEmail = liftHandler . runDB . fmap (fmap userEmail) . get
+
+
+
 instance YesodAuth BinChicken where
     type AuthId BinChicken = UserId
 
@@ -367,7 +469,7 @@ instance YesodAuth BinChicken where
 
     -- You can add other plugins like Google Email, email or OAuth here
     authPlugins :: BinChicken -> [AuthPlugin BinChicken]
-    authPlugins _ = [binLogin]
+    authPlugins _ = [authEmail]
 
 -- | Access function to determine if a user is logged in.
 isAuthenticated :: Handler AuthResult
@@ -394,15 +496,6 @@ isAdmin = do
 
 instance YesodAuthPersist BinChicken
 
-instance YesodAuthBinLogin BinChicken where
-  doesUserExist emal pw = do
-    mUser <- liftHandler $ runDB $ getBy (UniqueUser emal)
-    case mUser of
-      Nothing -> return False
-      Just (Entity _ (User _ pwh)) ->
-        case BC.checkPassword (BC.mkPassword pw) (BC.PasswordHash pwh) of
-          BC.PasswordCheckSuccess -> return True
-          BC.PasswordCheckFail -> return False
 
 
 -- This instance is required to use forms. You can modify renderMessage to

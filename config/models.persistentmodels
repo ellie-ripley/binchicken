@@ -3,7 +3,9 @@
 
 User
     email Text
-    passHash Text
+    passHash Text Maybe   -- password maybe not set yet
+    verkey Text Maybe     -- used to reset passwords
+    verified Bool
     UniqueUser email
     deriving Typeable
 
