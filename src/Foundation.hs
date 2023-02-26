@@ -58,6 +58,7 @@ import Import.NoFoundation
       liftIO,
       get,
       putStrLn,
+      fromString,
       LByteString,
       Html,
       HasHttpManager(..),
@@ -122,9 +123,10 @@ import Network.Mail.Mime ( Address(..)
                          , PartContent(..)
                          , emptyMail
                          )
-import Network.Mail.Mime.SES
+import Network.Mail.Mime.SES ( renderSendMailSESGlobal, SES(..))
 import Text.Shakespeare.Text (stext)
 import Yesod.Auth.Email
+import System.Environment (getEnv)
 
 import Yesod.Auth.Message   (AuthMessage(..))
 import Yesod.Default.Util   (addStaticContentExternal)
@@ -133,8 +135,6 @@ import qualified Yesod.Core.Unsafe as Unsafe
 import qualified Data.CaseInsensitive as CI
 import qualified Data.Text.Encoding as TE
 import qualified Data.Text.Lazy.Encoding as TEL
-import qualified Data.Password.Bcrypt as BC
-import Network.Mail.Mime.SES (SES)
 
 
 -- | The foundation datatype for your application. This can be a good place to
@@ -368,8 +368,14 @@ instance YesodPersistRunner BinChicken where
     getDBRunner :: Handler (DBRunner BinChicken, Handler ())
     getDBRunner = defaultGetDBRunner appConnPool
 
-sesCreds :: SES
-sesCreds = let x = x in x
+sesCredsNoKey :: SES
+sesCredsNoKey = SES { sesFrom = "noreply@binchicken.one"
+               , sesTo = []
+               , sesAccessKey = ""
+               , sesSecretKey = ""
+               , sesSessionToken = Nothing
+               , sesRegion = "ap-southeast-2"
+               }
 
 instance YesodAuthEmail BinChicken where
     type AuthEmailId BinChicken = UserId
@@ -384,8 +390,13 @@ instance YesodAuthEmail BinChicken where
         -- debugging.
         liftIO $ putStrLn $ "Copy/ Paste this URL in your browser: " ++ verurl
 
+        -- read SES keys from environment variables
+        akey <- liftIO (fromString <$> getEnv "BINCHICKEN_SES_AKEY")
+        skey <- liftIO (fromString <$> getEnv "BINCHICKEN_SES_SKEY")
+        let sesCreds = sesCredsNoKey { sesAccessKey = akey, sesSecretKey = skey }
+
         -- Send email.
-        liftIO $ renderSendMailSESGlobal sesCreds (emptyMail $ Address Nothing "noreply")
+        liftIO $ renderSendMailSESGlobal sesCreds (emptyMail $ Address Nothing "noreply@binchicken.one")
             { mailTo = [Address Nothing email]
             , mailHeaders =
                 [ ("Subject", "Verify your email address")
