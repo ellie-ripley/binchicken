@@ -20,4 +20,5 @@ cabal.sandbox.config
 *~
 \#*
 binchicken.cabal
-ses-creds.sh
+mailgun-creds.sh
+mail-test.sh

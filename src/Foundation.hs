@@ -54,7 +54,6 @@ import Import.NoFoundation
       fmap,
       join,
       (=.),
-      unpack,
       liftIO,
       get,
       putStrLn,
@@ -115,15 +114,7 @@ import Text.Hamlet          (hamletFile, shamlet)
 import Text.Jasmine         (minifym)
 import Control.Monad.Logger (LogSource)
 
-import Network.Mail.Mime ( Address(..)
-                         , Disposition(..)
-                         , Encoding(..)
-                         , Mail(..)
-                         , Part(..)
-                         , PartContent(..)
-                         , emptyMail
-                         )
-import Network.Mail.Mime.SES ( renderSendMailSESGlobal, SES(..))
+import BinEmail
 import Text.Shakespeare.Text (stext)
 import Yesod.Auth.Email
 import System.Environment (getEnv)
@@ -368,15 +359,6 @@ instance YesodPersistRunner BinChicken where
     getDBRunner :: Handler (DBRunner BinChicken, Handler ())
     getDBRunner = defaultGetDBRunner appConnPool
 
-sesCredsNoKey :: SES
-sesCredsNoKey = SES { sesFrom = "noreply@binchicken.one"
-               , sesTo = []
-               , sesAccessKey = ""
-               , sesSecretKey = ""
-               , sesSessionToken = Nothing
-               , sesRegion = "ap-southeast-2"
-               }
-
 instance YesodAuthEmail BinChicken where
     type AuthEmailId BinChicken = UserId
 
@@ -390,47 +372,10 @@ instance YesodAuthEmail BinChicken where
         -- debugging.
         liftIO $ putStrLn $ "Copy/ Paste this URL in your browser: " ++ verurl
 
-        -- read SES keys from environment variables
-        akey <- liftIO (fromString <$> getEnv "BINCHICKEN_SES_AKEY")
-        skey <- liftIO (fromString <$> getEnv "BINCHICKEN_SES_SKEY")
-        let sesCreds = sesCredsNoKey { sesAccessKey = akey, sesSecretKey = skey }
-
         -- Send email.
-        liftIO $ renderSendMailSESGlobal sesCreds (emptyMail $ Address Nothing "noreply@binchicken.one")
-            { mailTo = [Address Nothing email]
-            , mailHeaders =
-                [ ("Subject", "Verify your email address")
-                ]
-            , mailParts = [[textPart, htmlPart]]
-            }
-      where
-        textPart = Part
-            { partType = "text/plain; charset=utf-8"
-            , partEncoding = None
-            , partDisposition = DefaultDisposition
-            , partContent = PartContent $  TEL.encodeUtf8
-                [stext|
-                    Please confirm your email address by clicking on the link below.
 
-                    #{verurl}
+        liftIO $ binSendVerifyEmail email "Binchicken email verification" verurl
 
-                    Thank you
-                |]
-            , partHeaders = []
-            }
-        htmlPart = Part
-            { partType = "text/html; charset=utf-8"
-            , partEncoding = None
-            , partDisposition = DefaultDisposition
-            , partContent = PartContent . TEL.encodeUtf8 $ renderHtml
-                [shamlet|
-                    <p>Please confirm your email address by clicking on the link below.
-                    <p>
-                        <a href=#{verurl}>#{verurl}
-                    <p>Thank you
-                |]
-            , partHeaders = []
-            }
     getVerifyKey = liftHandler . runDB . fmap (join . fmap userVerkey) . get
     setVerifyKey uid key = liftHandler $ runDB $ update uid [UserVerkey =. Just key]
     verifyAccount uid = liftHandler $ runDB $ do
