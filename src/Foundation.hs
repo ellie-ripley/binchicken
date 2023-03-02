@@ -57,7 +57,6 @@ import Import.NoFoundation
       liftIO,
       get,
       putStrLn,
-      fromString,
       LByteString,
       Html,
       HasHttpManager(..),
@@ -109,15 +108,12 @@ import Import.NoFoundation
       userVerkey,
       userPassHash)
 import Database.Persist.Sql (ConnectionPool, insert, runSqlPool, update)
-import Text.Blaze.Html.Renderer.Text (renderHtml)
-import Text.Hamlet          (hamletFile, shamlet)
+import Text.Hamlet          (hamletFile)
 import Text.Jasmine         (minifym)
 import Control.Monad.Logger (LogSource)
 
 import BinEmail
-import Text.Shakespeare.Text (stext)
 import Yesod.Auth.Email
-import System.Environment (getEnv)
 
 import Yesod.Auth.Message   (AuthMessage(..))
 import Yesod.Default.Util   (addStaticContentExternal)
@@ -125,7 +121,6 @@ import Yesod.Core.Types     (Logger)
 import qualified Yesod.Core.Unsafe as Unsafe
 import qualified Data.CaseInsensitive as CI
 import qualified Data.Text.Encoding as TE
-import qualified Data.Text.Lazy.Encoding as TEL
 
 
 -- | The foundation datatype for your application. This can be a good place to
@@ -226,12 +221,12 @@ instance Yesod BinChicken where
                     }
                 , NavbarRight $ MenuItem
                     { menuItemLabel = "Register"
-                    , menuItemRoute = RegisterR
+                    , menuItemRoute = AuthR registerR
                     , menuItemAccessCallback = isNothing muser
                     }
                 , NavbarRight $ MenuItem
                     { menuItemLabel = "Login"
-                    , menuItemRoute = AuthR LoginR
+                    , menuItemRoute = AuthR loginR
                     , menuItemAccessCallback = isNothing muser
                     }
                 , NavbarRight $ MenuItem
@@ -382,7 +377,7 @@ instance YesodAuthEmail BinChicken where
         mu <- get uid
         case mu of
             Nothing -> return Nothing
-            Just u -> do
+            Just _ -> do
                 update uid [UserVerified =. True, UserVerkey =. Nothing]
                 return $ Just uid
     getPassword = liftHandler . runDB . fmap (join . fmap userPassHash) . get
