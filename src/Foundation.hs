@@ -57,6 +57,7 @@ import Import.NoFoundation
       liftIO,
       get,
       putStrLn,
+      (>>=),
       LByteString,
       Html,
       HasHttpManager(..),
@@ -112,7 +113,7 @@ import Text.Hamlet          (hamletFile)
 import Text.Jasmine         (minifym)
 import Control.Monad.Logger (LogSource)
 
-import BinEmail (binEmailLoginHandler, binForgotPasswordHandler, binSendVerifyEmail)
+import BinEmail (binEmailLoginHandler, binForgotPasswordHandler, binSendVerifyEmail, mailgunApiKey)
 import Yesod.Auth.Email
 
 import Yesod.Auth.Message   (AuthMessage(..))
@@ -371,6 +372,7 @@ instance YesodAuthEmail BinChicken where
         -- Print out to the console the verification email, for easier
         -- debugging.
         liftIO $ putStrLn $ "Copy/ Paste this URL in your browser: " ++ verurl
+        liftIO $ mailgunApiKey >>= putStrLn
 
         -- Send email.
 

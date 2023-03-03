@@ -38,7 +38,7 @@ mailgunDomain :: Text
 mailgunDomain = "mail.binchicken.one"
 
 mailgunApiKey :: IO Text
-mailgunApiKey = fromString <$> getEnv "BINCHICKEN_MAILGUN_API"
+mailgunApiKey = fromString . head . lines <$> readFile "/opt/binchicken/mailgun_creds.config"
 
 verEmailBody
   :: Text -- ^ the verification url
