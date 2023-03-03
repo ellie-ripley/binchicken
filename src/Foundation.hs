@@ -112,7 +112,7 @@ import Text.Hamlet          (hamletFile)
 import Text.Jasmine         (minifym)
 import Control.Monad.Logger (LogSource)
 
-import BinEmail
+import BinEmail (binEmailLoginHandler, binForgotPasswordHandler, binSendVerifyEmail)
 import Yesod.Auth.Email
 
 import Yesod.Auth.Message   (AuthMessage(..))
@@ -226,8 +226,13 @@ instance Yesod BinChicken where
                     }
                 , NavbarRight $ MenuItem
                     { menuItemLabel = "Login"
-                    , menuItemRoute = AuthR loginR
+                    , menuItemRoute = AuthR LoginR
                     , menuItemAccessCallback = isNothing muser
+                    }
+                , NavbarRight $ MenuItem
+                    { menuItemLabel = "Change password"
+                    , menuItemRoute = AuthR setpassR
+                    , menuItemAccessCallback = isJust muser
                     }
                 , NavbarRight $ MenuItem
                     { menuItemLabel = "Logout"
@@ -395,6 +400,8 @@ instance YesodAuthEmail BinChicken where
                 }
     getEmail = liftHandler . runDB . fmap (fmap userEmail) . get
 
+    emailLoginHandler = binEmailLoginHandler
+    forgotPasswordHandler = binForgotPasswordHandler
 
 
 instance YesodAuth BinChicken where
