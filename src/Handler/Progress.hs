@@ -57,7 +57,7 @@ import Import.NoFoundation
       img_ibis_icon_png,
       YesodAuth(maybeAuthId) )
 import GHC.Float.RealFracMethods (roundDoubleInt)
-import Data.Map (adjust, fromList, lookup)
+import Data.Map (adjust, fromList, lookup, foldlWithKey')
 import qualified Database.Esqueleto.Legacy as E
 import Database.Esqueleto.Legacy ((^.), (==.))
 
@@ -74,6 +74,7 @@ getProgressR = do
             E.orderBy [E.desc (att ^. AttemptSubmittedAt)]    --Newest to oldest, so current streak is at head
             return att
         let pm = progressMap atts
+            tp = totalPoints pm
         defaultLayout $ do
             setTitle "Progress"
             $(widgetFile "progress")
@@ -103,11 +104,13 @@ data TargetsReached =
   TargetsReached { target1 :: Bool
                  , target2 :: Bool
                  , target3 :: Bool
+                 , target4 :: Bool
                  }
 
 targetsReached :: ExerciseTargets -> Progress -> TargetsReached
 targetsReached (ExerciseTargets t1 t2 s1) (Progress _ bes tot) =
-  TargetsReached (tot >= t1 || bes >= s1)
+  TargetsReached (tot >= 1  || bes >= s1)
+                 (tot >= t1 || bes >= s1)
                  (tot >= t2 || bes >= s1)
                  (bes >= s1)
 
@@ -116,6 +119,7 @@ data PointsEarned =
   | OnePoint
   | TwoPoints
   | ThreePoints
+  | FourPoints
   deriving (Eq, Ord, Enum)
 
 displayPointsEarned :: PointsEarned -> Text
@@ -123,9 +127,10 @@ displayPointsEarned = pack . show . fromEnum
 
 pointsEarned :: ExerciseTargets -> Progress -> PointsEarned
 pointsEarned (ExerciseTargets t1 t2 s1 ) (Progress _ bes tot)
-  | bes >= s1 = ThreePoints
-  | tot >= t2 = TwoPoints
-  | tot >= t1 = OnePoint
+  | bes >= s1 = FourPoints
+  | tot >= t2 = ThreePoints
+  | tot >= t1 = TwoPoints
+  | tot >= 1  = OnePoint
   | otherwise = ZeroPoints
 
 progressMap :: [Entity Attempt] -> Map ExerciseType Progress
@@ -146,3 +151,9 @@ progressMap = (foldr accum zeroProgressMap) . (map E.entityVal)
 
     accum :: Attempt -> Map ExerciseType Progress -> Map ExerciseType Progress
     accum a m = adjust (adj $ attemptIsCorrect a) (attemptExerciseType a) m
+
+totalPoints :: Map ExerciseType Progress -> Int
+totalPoints = foldlWithKey' accum 0
+  where
+    accum :: Int -> ExerciseType -> Progress -> Int
+    accum a et p = a + (fromEnum $ pointsEarned (targets et) p)

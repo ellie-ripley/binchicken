@@ -10,6 +10,8 @@
     $if null exTypes
         <p>There are no exercise types! (This is a bug in the site!)
     $else
+        <div .ex-overall>
+            <p>Total: #{tp} / 40 available points earned
         <div .ex-progress-list>
             $forall et <- exTypes
               $with targs <- targets et
@@ -29,7 +31,7 @@
                         <div .row>
                           <div .col-md-2>
                               <h6>Level 1:
-                              <p>#{totalMilestone1 $ targs} correct
+                              <p>1 correct
                               <img .progress-badge :points >= OnePoint:.complete src=@{StaticR img_ibis_icon_png}>
                               $if points >= OnePoint
                                   <p>Got it!
@@ -37,7 +39,7 @@
                                   <p>Not yet!
                           <div .col-md-2>
                               <h6>Level 2:
-                              <p>#{totalMilestone2 $ targs} correct
+                              <p>#{totalMilestone1 $ targs} correct
                               <img .progress-badge :points >= TwoPoints:.complete src=@{StaticR img_ibis_icon_png}>
                               $if points >= TwoPoints
                                   <p>Got it!
@@ -45,9 +47,17 @@
                                   <p>Not yet!
                           <div .col-md-2>
                               <h6>Level 3:
-                              <p>streak of #{streakMilestone1 $ targs}
+                              <p>#{totalMilestone2 $ targs} correct
                               <img .progress-badge :points >= ThreePoints:.complete src=@{StaticR img_ibis_icon_png}>
                               $if points >= ThreePoints
+                                  <p>Got it!
+                              $else
+                                  <p>Not yet!
+                          <div .col-md-2>
+                              <h6>Level 4:
+                              <p>streak of #{streakMilestone1 $ targs}
+                              <img .progress-badge :points >= FourPoints:.complete src=@{StaticR img_ibis_icon_png}>
+                              $if points >= FourPoints
                                   <p>Got it!
                               $else
                                   <p>Not yet!

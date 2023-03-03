@@ -12,7 +12,7 @@
 }
 
 .progress-badge {
-    width: 7rem;
+    width: 5rem;
     filter: opacity(50%) blur(.1rem);
 }
 
