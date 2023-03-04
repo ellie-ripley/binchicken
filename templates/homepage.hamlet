@@ -13,8 +13,11 @@
             <div .col-lg-12>
                 <div .page-header>
 
-                    <p>
+                    <h6>
                         Welcome to Bin Chicken: the Internet Based Instructional System!
-                        Registration and login are currently down for maintenance; back soon!
-                        In the meantime, you're welcome to explore the exercises---just know that your responses are not being recorded.
+                    <p>
+                        There are ten exercise types <a href=@{ExercisesR}>here</a>; you're free to explore them without any registration or login.
+                        If you want Bin Chicken to keep track of your progress, though, you'll need an account.
+                        You can register or log in via the links at the top right.
+                        Either way, enjoy practicing logic!
     <hr>

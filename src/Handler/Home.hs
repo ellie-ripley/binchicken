@@ -5,7 +5,7 @@
 {-# LANGUAGE TypeFamilies #-}
 module Handler.Home where
 
-import Foundation ( Route(RegisterR), Route(RegisterR), Handler )
+import Foundation (Handler, Route(..))
 import Import.NoFoundation
     ( ($),
       setTitle,
