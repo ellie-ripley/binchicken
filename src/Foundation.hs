@@ -113,7 +113,7 @@ import Text.Hamlet          (hamletFile)
 import Text.Jasmine         (minifym)
 import Control.Monad.Logger (LogSource)
 
-import BinEmail (binEmailLoginHandler, binForgotPasswordHandler, binSendVerifyEmail, mailgunApiKey)
+import BinEmail (binEmailLoginHandler, binForgotPasswordHandler, binRegisterHandler, binSendVerifyEmail, mailgunApiKey)
 import Yesod.Auth.Email
 
 import Yesod.Auth.Message   (AuthMessage(..))
@@ -402,6 +402,7 @@ instance YesodAuthEmail BinChicken where
                 }
     getEmail = liftHandler . runDB . fmap (fmap userEmail) . get
 
+    registerHandler = binRegisterHandler
     emailLoginHandler = binEmailLoginHandler
     forgotPasswordHandler = binForgotPasswordHandler
 

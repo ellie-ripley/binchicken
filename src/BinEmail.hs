@@ -15,7 +15,9 @@ import Import.NoFoundation ( Auth
                            , authLayout
                            , emailField
                            , fromString
+                           , fsLabel
                            , fvInput
+                           , fvLabel
                            , generateFormPost
                            , getRouteToParent
                            , getYesod
@@ -28,7 +30,6 @@ import Import.NoFoundation ( Auth
                            )
 
 import Data.Text (Text, unpack)
-import System.Environment (getEnv)
 import System.Process (callCommand)
 
 import Yesod.Auth.Email
@@ -177,3 +178,41 @@ binEmailLoginHandler toParent = do
         langs <- languages
         master <- getYesod
         return $ renderAuthMessage master langs msg
+
+
+data UserForm = UserForm { _userFormEmail :: Text }
+
+binRegisterHandler :: YesodAuthEmail master => AuthHandler master Html
+binRegisterHandler = do
+    (widget, enctype) <- generateFormPost registrationForm
+    toParentRoute <- getRouteToParent
+    authLayout $ do
+        setTitleI Msg.RegisterLong
+        [whamlet|
+            <p>_{Msg.EnterEmail}
+            <form method="post" action="@{toParentRoute registerR}" enctype=#{enctype}>
+                <div id="registerForm">
+                    ^{widget}
+                <button .btn .btn-success>_{Msg.Register}
+        |]
+    where
+        registrationForm extra = do
+            let emailSettings = FieldSettings {
+                fsLabel = SomeMessage Msg.Email,
+                fsTooltip = Nothing,
+                fsId = Just "email",
+                fsName = Just "email",
+                fsAttrs = [("autofocus", "")]
+            }
+
+            (emailRes, emailView) <- mreq emailField emailSettings Nothing
+
+            let userRes = UserForm <$> emailRes
+            let widget = do
+                  [whamlet|
+                      #{extra}
+                      ^{fvLabel emailView}
+                      ^{fvInput emailView}
+                  |]
+
+            return (userRes, widget)
