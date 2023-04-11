@@ -46,7 +46,6 @@ $else
     <div .container>
         <p .text-muted>
             #{appCopyright $ appSettings master}
-            <a href="https://www.flaticon.com/free-icons/ornithology" title="ornithology icons">Ornithology icons created by Freepik - Flaticon
         $maybe ap <- muser
             <p>Logged in as #{userEmail $ snd ap}
         $nothing
