@@ -5,10 +5,12 @@
 {-# LANGUAGE TypeFamilies #-}
 module Handler.Home where
 
-import Foundation (Handler, Route(..))
+import Foundation (appSettings, Handler, Route(..))
 import Import.NoFoundation
     ( ($),
+      getYesod,
       setTitle,
+      AppSettings(..),
       Html,
       Yesod(defaultLayout),
       widgetFile )
@@ -24,6 +26,7 @@ import Import.NoFoundation
 getHomeR :: Handler Html
 getHomeR = do
     defaultLayout $ do
+        master <- getYesod
         setTitle "Bin Chicken Home"
         $(widgetFile "homepage")
 

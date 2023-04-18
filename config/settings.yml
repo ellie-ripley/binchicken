@@ -33,5 +33,6 @@ database:
   database: "_env:YESOD_SQLITE_DATABASE:/var/lib/db/binchicken.sqlite3"
   poolsize: "_env:YESOD_SQLITE_POOLSIZE:10"
 
-copyright: Insert copyright statement here
+copyright: ""
+repo-link: "https://bitbucket.org/davewripley/binchicken"
 #analytics: UA-YOURCODE

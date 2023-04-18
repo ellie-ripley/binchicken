@@ -58,6 +58,8 @@ data AppSettings = AppSettings
     -- ^ Copyright text to appear in the footer of the page
     , appAnalytics              :: Maybe Text
     -- ^ Google Analytics code
+    , appRepoLink               :: Maybe Text
+    -- ^ url (unchecked!) to source repo
 
     , appAuthDummyLogin         :: Bool
     -- ^ Indicate if auth dummy login should be enabled.
@@ -88,6 +90,7 @@ instance FromJSON AppSettings where
 
         appCopyright              <- o .:  "copyright"
         appAnalytics              <- o .:? "analytics"
+        appRepoLink               <- o .:? "repo-link"
 
         appAuthDummyLogin         <- o .:? "auth-dummy-login"      .!= dev
 

@@ -20,4 +20,6 @@
                         If you want Bin Chicken to keep track of your progress, though, you'll need an account.
                         You can register or log in via the links at the top right.
                         Either way, enjoy practicing logic!
+                    $maybe replink <- appRepoLink $ appSettings master
+                        <p>Bin Chicken is <a href="https://www.gnu.org/philosophy/free-sw.en.html">free software</a> (free as in both speech and beer); its source code is available <a href="#{replink}">over here!</a>
     <hr>
