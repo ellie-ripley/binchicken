@@ -23,12 +23,10 @@ import Import.NoFoundation
       fromIntegral,
       Bounded(maxBound, minBound),
       Enum(fromEnum),
-      Eq(..),
       Fractional((/)),
       Monad(return),
       Num((+), (*)),
       Ord((<=), (>=)),
-      Read,
       Show(show),
       Semigroup((<>)),
       Bool(..),
@@ -36,7 +34,6 @@ import Import.NoFoundation
       Int,
       Maybe(Just, Nothing),
       repeat,
-      (||),
       Text,
       Map,
       map,
@@ -61,6 +58,12 @@ import Data.Map (adjust, fromList, lookup, foldlWithKey')
 import qualified Database.Esqueleto.Legacy as E
 import Database.Esqueleto.Legacy ((^.), (==.))
 
+import Scoring
+  ( PointsEarned(..)
+  , Progress(..)
+  , pointsEarned
+  )
+
 getProgressR :: Handler Html
 getProgressR = do
     let exTypes = activeExerciseTypes -- Show only active exercises
@@ -79,6 +82,8 @@ getProgressR = do
             setTitle "Progress"
             $(widgetFile "progress")
 
+displayPointsEarned :: PointsEarned -> Text
+displayPointsEarned = pack . show . fromEnum
 
 exerciseProgressCurrentId :: ExerciseType -> Text
 exerciseProgressCurrentId et = (pack $ show et) <> "-progress-current"
@@ -92,46 +97,6 @@ streakBarPercent et bestStr
   | bestStr >= maxStr = 100
   | otherwise         = roundDoubleInt $ (fromIntegral $ bestStr * 100) / (fromIntegral maxStr :: Double)
   where maxStr = fullStreak et
-
-data Progress =
-  Progress { currentStreak :: Int
-           , bestStreak    :: Int
-           , totalCorrect  :: Int
-           }
-  deriving (Eq, Read, Show)
-
-data TargetsReached =
-  TargetsReached { target1 :: Bool
-                 , target2 :: Bool
-                 , target3 :: Bool
-                 , target4 :: Bool
-                 }
-
-targetsReached :: ExerciseTargets -> Progress -> TargetsReached
-targetsReached (ExerciseTargets t1 t2 s1) (Progress _ bes tot) =
-  TargetsReached (tot >= 1  || bes >= s1)
-                 (tot >= t1 || bes >= s1)
-                 (tot >= t2 || bes >= s1)
-                 (bes >= s1)
-
-data PointsEarned =
-    ZeroPoints
-  | OnePoint
-  | TwoPoints
-  | ThreePoints
-  | FourPoints
-  deriving (Eq, Ord, Enum)
-
-displayPointsEarned :: PointsEarned -> Text
-displayPointsEarned = pack . show . fromEnum
-
-pointsEarned :: ExerciseTargets -> Progress -> PointsEarned
-pointsEarned (ExerciseTargets t1 t2 s1 ) (Progress _ bes tot)
-  | bes >= s1 = FourPoints
-  | tot >= t2 = ThreePoints
-  | tot >= t1 = TwoPoints
-  | tot >= 1  = OnePoint
-  | otherwise = ZeroPoints
 
 progressMap :: [Entity Attempt] -> Map ExerciseType Progress
 progressMap = (foldr accum zeroProgressMap) . (map E.entityVal)
