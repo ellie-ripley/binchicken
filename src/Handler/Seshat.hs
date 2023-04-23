@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
-module Handler.Summary where
+module Handler.Seshat where
 
 import Foundation ( Handler )
 import Import.NoFoundation ( Attempt(..)
@@ -121,12 +121,12 @@ tally usrs = foldl' inserter (initSumm usrs)
         Nothing  -> srs
         Just uid -> M.adjust (addAttempt (attemptExerciseType att) (attemptIsCorrect att)) uid srs
 
-getSummaryR :: Handler Html
-getSummaryR = do
+getSeshatR :: Handler Html
+getSeshatR = do
   (usrs :: [Entity User]) <- runDB $ selectList [] []
   (atts :: [Entity Attempt]) <- runDB $ selectList [] []
   let summ = tally usrs atts
       exts = activeExerciseTypes
   defaultLayout $ do
-    setTitle "Summary"
+    setTitle "Seshat"
     $(widgetFile "summary")
