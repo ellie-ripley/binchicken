@@ -18,9 +18,9 @@
                     <tr>
                         <td>#{displayUserId i}
                         <td>#{userEmail u}
-                        $maybe scr <- srResults <$> (M.lookup i summ)
-                            <td>#{show (totalScore scr)}
+                        $maybe src <- M.lookup i summ
+                            <td>#{show (totalPoints src)}
                             $forall et <- exts
-                                <td>#{show (exScore et scr)}
+                                <td>#{show (exScore src et)}
                         $nothing
                             <td>Error 23
