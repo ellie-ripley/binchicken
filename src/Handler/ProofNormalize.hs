@@ -124,7 +124,9 @@ getProofNormalizeR = do
       startingConclusion = pnConclusion nrReqs
       pExName = "Proof normalization" :: Text
       pExInstructions =
-        [whamlet|<p>Give two proofs below. Your first proof should meet the given requirements, and your second proof should be in normal form and have no open assumptions that are not also open in the first proof. The best way to do this is to make your first proof and then normalize it, inputting the normal form as the second proof; that will always work. |]
+        [whamlet|<p>Give two proofs below. Your first proof should meet the given requirements, and your second proof should be in normal form and have no open assumptions that are not also open in the first proof. The best way to do this is to make your first proof and then normalize it, inputting the normal form as the second proof; that will always work.
+
+            <p>Note that if you want the second proof to be more than just an assumption of the conclusion, you will need to add any extra nodes yourself. |]
       pExContent = renderPNRequirements nrReqs
       pExEntry =
         [whamlet|
