@@ -25,13 +25,14 @@ import Import.NoFoundation
       Fractional((/)),
       Monad(return),
       Num((*)),
-      Ord((<=), (>=)),
+      Ord(..),
       Show(show),
       Semigroup((<>)),
       Double,
       Int,
       Maybe(Just, Nothing),
       Text,
+      error,
       null,
       pack,
       redirect,
@@ -44,16 +45,18 @@ import Import.NoFoundation
       img_ibis_icon_png,
       YesodAuth(maybeAuthId) )
 import GHC.Float.RealFracMethods (roundDoubleInt)
-import Data.Map (lookup)
+import qualified Data.Map as M
 import qualified Database.Esqueleto.Legacy as E
 import Database.Esqueleto.Legacy ((^.), (==.))
 
 import Scoring
-  ( PointsEarned(..)
-  , Progress(..)
-  , displayPointsEarned
+  ( Progress(..)
+  , Results(..)
+  , Summary(..)
+  , SummaryRow(..)
+  , calculateSummaryRow
   , pointsEarned
-  , progressMap
+  , tally
   , totalPoints
   )
 
@@ -69,8 +72,10 @@ getProgressR = do
             E.where_ (att ^. AttemptUserId ==. (E.just $ E.val uid))
             E.orderBy [E.desc (att ^. AttemptSubmittedAt)]    --Newest to oldest, so current streak is at head
             return att
-        let pm = progressMap atts
-            tp = totalPoints pm
+        let tal = tally [uid] atts
+            sr  = case M.lookup uid (unSummary tal) of
+                      Just succ -> succ
+                      Nothing   -> error "Error 2323!"
         defaultLayout $ do
             setTitle "Progress"
             $(widgetFile "progress")

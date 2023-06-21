@@ -18,7 +18,7 @@
                     <tr>
                         <td>#{displayUserId i}
                         <td>#{userEmail u}
-                        $maybe src <- M.lookup i summ
+                        $maybe src <- M.lookup i (unSummary summ)
                             <td>#{show (totalPoints src)}
                             $forall et <- exts
                                 <td>#{show (exScore src et)}

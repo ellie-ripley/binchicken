@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
 module Scoring where
@@ -5,23 +6,21 @@ module Scoring where
 import Import.NoFoundation
   ( (+)
   , (.)
+  , ($)
   , fmap
   , foldl'
   , foldr
-  , fromMaybe
-  , map
   , max
   , otherwise
-  , repeat
-  , zip
   , Attempt(..)
   , Bool(..)
   , Entity(..)
   , Eq
+  , Functor
   , Int
   , Key(..)
   , Maybe(..)
-  , Ord((>=), (<=))
+  , Ord(..)
   , Read
   , Show(..)
   , Text
@@ -46,46 +45,40 @@ data Progress =
   deriving (Eq, Read, Show)
 
 -- | Information about a single user's overall progress
-type Results = Map ExerciseType Progress
+newtype Results a = Results { unResults :: Map ExerciseType a }
+  deriving(Functor)
 
-type ResultsCalculated = Map ExerciseType Int
-
-data SummaryRow = SummaryRow
+data SummaryRow a = SummaryRow
   { srEmail :: Text
-  , srResults :: Results
+  , srResults :: Results a
   }
-
-data SummaryRowCalculated = SummaryRowCalculated
-  { srcEmail :: Text
-  , srcResultsCalculated :: ResultsCalculated
-  }
+  deriving(Functor)
 
 -- | Information about a collection of users' progress
-type Summary = Map (Key User) SummaryRow
-
-type SummaryCalculated = Map (Key User) SummaryRowCalculated
+newtype Summary a = Summary { unSummary :: Map (Key User) (SummaryRow a) }
+  deriving(Functor)
 
 -- | Results at the start of time
-emptyResults :: Results
+emptyResults :: Results Progress
 emptyResults =
   let startRT = Progress 0 0 0
-  in  foldl' (\acc et -> M.insert et startRT acc) M.empty activeExerciseTypes
+  in  Results $ foldl' (\acc et -> M.insert et startRT acc) M.empty activeExerciseTypes
 
 -- | Given a user, an empty row for that user
-emptyRow :: User -> SummaryRow
+emptyRow :: User -> SummaryRow Progress
 emptyRow u = SummaryRow
   { srEmail = userEmail u
   , srResults = emptyResults
   }
 
 -- | Given a list of users, an empty summary for those users
-emptySumm :: [Entity User] -> Summary
-emptySumm [] = M.empty
+emptySumm :: [Entity User] -> Summary Progress
+emptySumm [] = Summary M.empty
 emptySumm ((Entity i u):eus) =
-  let runningS = emptySumm eus
-  in case M.lookup i runningS of
-    Nothing -> M.insert i (emptyRow u) runningS
-    Just _  -> runningS
+  let (Summary runningMap) = emptySumm eus
+  in case M.lookup i runningMap of
+    Nothing -> Summary $ M.insert i (emptyRow u) runningMap
+    Just _  -> Summary runningMap
 
 -- | what one correct answer does to a Progress
 correctUpdate :: Progress -> Progress
@@ -108,49 +101,54 @@ incorrectUpdate prog = prog { currentStreak = 0 }
 addAttempt
   :: ExerciseType
   -> Bool
-  -> SummaryRow
-  -> SummaryRow
-addAttempt et corr sr = sr { srResults = newResults }
+  -> SummaryRow Progress
+  -> SummaryRow Progress
+addAttempt et corr (SummaryRow em res) =
+  SummaryRow em newRes
   where
-    newResults = let upd = if corr then correctUpdate else incorrectUpdate
-                 in M.adjust upd et (srResults sr)
+    newRes = Results $ let upd = if corr then correctUpdate else incorrectUpdate
+                       in M.adjust upd et (unResults res)
 
--- | Takes full db of attempts and of users to create summary table
+-- | Takes lists of attempts and of users to create summary table
 -- | only counts attempts where the user is present in the list of users
-tally :: [Entity User] -> [Entity Attempt] -> Summary
+tally :: [Entity User] -> [Entity Attempt] -> Summary Progress
 tally usrs = foldl' inserter (emptySumm usrs)
   where
-    inserter :: Summary -> Entity Attempt -> Summary
+    inserter :: Summary Progress -> Entity Attempt -> Summary Progress
     inserter srs (Entity _ att) =
       case attemptUserId att of -- does the attempt have a user id?
         Nothing  -> srs
-        Just uid -> M.adjust (addAttempt (attemptExerciseType att) (attemptIsCorrect att)) uid srs
+        Just uid -> Summary $ M.adjust
+                                (addAttempt (attemptExerciseType att) (attemptIsCorrect att))
+                                uid
+                                (unSummary srs)
 
 -- | Functions for taking Progress and moving to actual scores
 
-pointsEarned :: ExerciseTargets -> Progress -> Int
-pointsEarned (ExerciseTargets tot1 tot2 str) (Progress _ bes tot)
+calcPoints :: ExerciseTargets -> Progress -> Int
+calcPoints (ExerciseTargets tot1 tot2 str) (Progress _ bes tot)
   | bes >= str  = 4
   | tot >= tot2 = 3
   | tot >= tot1 = 2
   | tot >= 1    = 1
   | otherwise   = 0
 
-calculateResults :: Results -> ResultsCalculated
-calculateResults = M.mapWithKey (pointsEarned . targets)
+pointsEarned :: ExerciseType -> Progress -> Int
+pointsEarned = calcPoints . targets
 
-calculateSRow :: SummaryRow -> SummaryRowCalculated
-calculateSRow (SummaryRow em res) = SummaryRowCalculated em (calculateResults res)
+calculateResults :: Results Progress -> Results Int
+calculateResults = Results . M.mapWithKey pointsEarned . unResults
 
-calculateSummary :: Summary -> SummaryCalculated
-calculateSummary = map calculateSRow
+calculateSummaryRow :: SummaryRow Progress -> SummaryRow Int
+calculateSummaryRow sr = sr { srResults = calculateResults (srResults sr) }
 
+calculateSummary :: Summary Progress -> Summary Int
+calculateSummary = Summary . fmap calculateSummaryRow . unSummary
 
-exScore :: SummaryRowCalculated -> ExerciseType -> Maybe Int
-exScore src et = M.lookup et (srcResultsCalculated src)
+exScore :: SummaryRow Int -> ExerciseType -> Maybe Int
+exScore (SummaryRow _ res) et = M.lookup et (unResults res)
 
-totalPoints :: SummaryRowCalculated -> Maybe Int
-totalPoints src = foldr adder (Just 0) (srcResultsCalculated src)
+totalPoints :: SummaryRow Int -> Int
+totalPoints sr = foldr adder 0 (unResults $ srResults sr)
   where
-    adder :: Int -> Maybe Int -> Maybe Int
-    adder i = fmap (i +)
+    adder i = (i +)

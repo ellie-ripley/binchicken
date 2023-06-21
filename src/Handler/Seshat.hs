@@ -10,7 +10,6 @@ import Import.NoFoundation ( Attempt(..)
                            , Key(..)
                            , User(..)
                            , Yesod(..)
-                           , ($)
                            , runDB
                            , selectList
                            , setTitle
@@ -25,18 +24,13 @@ import Scoring
   ( calculateSummary
   , exScore
   , tally
-  , totalPoints, calculateSummary
+  , totalPoints
+  , Summary(..)
   )
-
-
 
 
 displayUserId :: Key User -> String
 displayUserId = show . unSqlBackendKey . unUserKey
-
-
-
-
 
 
 
