@@ -19,7 +19,6 @@ import Foundation
 import Import.NoFoundation
     ( otherwise,
       ($),
-      (.),
       fromIntegral,
       Enum(fromEnum),
       Fractional((/)),
