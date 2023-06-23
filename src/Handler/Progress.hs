@@ -21,45 +21,45 @@ import Import.NoFoundation
       ($),
       (.),
       fromIntegral,
-      Bounded(maxBound, minBound),
       Enum(fromEnum),
-      Eq(..),
       Fractional((/)),
       Monad(return),
-      Num((+), (*)),
-      Ord((<=), (>=)),
-      Read,
+      Num((*)),
+      Ord(..),
       Show(show),
       Semigroup((<>)),
-      Bool(..),
       Double,
       Int,
       Maybe(Just, Nothing),
-      repeat,
-      (||),
       Text,
-      Map,
-      map,
-      foldr,
+      error,
+      getEntity,
       null,
       pack,
       redirect,
       setTitle,
       Html,
-      zip,
-      Entity,
-      EntityField(AttemptSubmittedAt, AttemptUserId),
       EntityField(AttemptSubmittedAt, AttemptUserId),
       Yesod(defaultLayout),
       YesodPersist(runDB),
       widgetFile,
-      Attempt(attemptIsCorrect, attemptExerciseType),
       img_ibis_icon_png,
       YesodAuth(maybeAuthId) )
 import GHC.Float.RealFracMethods (roundDoubleInt)
-import Data.Map (adjust, fromList, lookup, foldlWithKey')
+import qualified Data.Map as M
 import qualified Database.Esqueleto.Legacy as E
 import Database.Esqueleto.Legacy ((^.), (==.))
+
+import Scoring
+  ( Progress(..)
+  , Results(..)
+  , Summary(..)
+  , SummaryRow(..)
+  , calculateSummaryRow
+  , pointsEarned
+  , tally
+  , totalPoints
+  )
 
 getProgressR :: Handler Html
 getProgressR = do
@@ -68,16 +68,23 @@ getProgressR = do
     case muid of
       Nothing -> redirect HomeR
       Just uid -> do
-        atts <- runDB $ E.select $
-            E.from $ \att -> do
-            E.where_ (att ^. AttemptUserId ==. (E.just $ E.val uid))
-            E.orderBy [E.desc (att ^. AttemptSubmittedAt)]    --Newest to oldest, so current streak is at head
-            return att
-        let pm = progressMap atts
-            tp = totalPoints pm
-        defaultLayout $ do
-            setTitle "Progress"
-            $(widgetFile "progress")
+        muser <- runDB $ getEntity uid
+        case muser of
+          Nothing -> error "Logged in as a nonexistent user? This is a bug in the site."
+          Just user -> do
+            atts <- runDB $ E.select $
+                E.from $ \att -> do
+                E.where_ (att ^. AttemptUserId ==. E.just (E.val uid))
+                E.orderBy [E.desc (att ^. AttemptSubmittedAt)]    --Newest to oldest, so current streak is at head
+                return att
+            let tal = tally [user] atts
+                sr  = case M.lookup uid (unSummary tal) of
+                          Just succ -> succ
+                          Nothing   -> error "Error 2323!"
+            defaultLayout $ do
+                setTitle "Progress"
+                $(widgetFile "progress")
+
 
 
 exerciseProgressCurrentId :: ExerciseType -> Text
@@ -92,68 +99,3 @@ streakBarPercent et bestStr
   | bestStr >= maxStr = 100
   | otherwise         = roundDoubleInt $ (fromIntegral $ bestStr * 100) / (fromIntegral maxStr :: Double)
   where maxStr = fullStreak et
-
-data Progress =
-  Progress { currentStreak :: Int
-           , bestStreak    :: Int
-           , totalCorrect  :: Int
-           }
-  deriving (Eq, Read, Show)
-
-data TargetsReached =
-  TargetsReached { target1 :: Bool
-                 , target2 :: Bool
-                 , target3 :: Bool
-                 , target4 :: Bool
-                 }
-
-targetsReached :: ExerciseTargets -> Progress -> TargetsReached
-targetsReached (ExerciseTargets t1 t2 s1) (Progress _ bes tot) =
-  TargetsReached (tot >= 1  || bes >= s1)
-                 (tot >= t1 || bes >= s1)
-                 (tot >= t2 || bes >= s1)
-                 (bes >= s1)
-
-data PointsEarned =
-    ZeroPoints
-  | OnePoint
-  | TwoPoints
-  | ThreePoints
-  | FourPoints
-  deriving (Eq, Ord, Enum)
-
-displayPointsEarned :: PointsEarned -> Text
-displayPointsEarned = pack . show . fromEnum
-
-pointsEarned :: ExerciseTargets -> Progress -> PointsEarned
-pointsEarned (ExerciseTargets t1 t2 s1 ) (Progress _ bes tot)
-  | bes >= s1 = FourPoints
-  | tot >= t2 = ThreePoints
-  | tot >= t1 = TwoPoints
-  | tot >= 1  = OnePoint
-  | otherwise = ZeroPoints
-
-progressMap :: [Entity Attempt] -> Map ExerciseType Progress
-progressMap = (foldr accum zeroProgressMap) . (map E.entityVal)
-  where
-    zeroProgress :: Progress
-    zeroProgress = Progress 0 0 0
-
-    zeroProgressMap :: Map ExerciseType Progress
-    zeroProgressMap = fromList $ zip [minBound..maxBound] (repeat zeroProgress)
-
-    adj :: Bool -> Progress -> Progress
-    adj True (Progress cur bes tot) =
-      Progress (cur + 1) (if bes <= cur
-                          then cur + 1
-                          else bes) (tot + 1)
-    adj False (Progress _ bes tot) = Progress 0 bes tot
-
-    accum :: Attempt -> Map ExerciseType Progress -> Map ExerciseType Progress
-    accum a m = adjust (adj $ attemptIsCorrect a) (attemptExerciseType a) m
-
-totalPoints :: Map ExerciseType Progress -> Int
-totalPoints = foldlWithKey' accum 0
-  where
-    accum :: Int -> ExerciseType -> Progress -> Int
-    accum a et p = a + (fromEnum $ pointsEarned (targets et) p)

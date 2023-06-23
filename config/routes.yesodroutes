@@ -32,4 +32,4 @@
 
 -- Other pages
 /proof-playground ProofPlaygroundR GET POST
-/temperature-coerce-fireplace-lead SummaryR GET
+/seshat SeshatR GET
