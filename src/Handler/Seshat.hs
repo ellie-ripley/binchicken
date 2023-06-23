@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
@@ -32,6 +33,10 @@ import Scoring
 displayUserId :: Key User -> String
 displayUserId = show . unSqlBackendKey . unUserKey
 
+displayScore :: Maybe Int -> String
+displayScore =
+  \case Nothing -> "Missing"
+        Just i  -> show i
 
 
 getSeshatR :: Handler Html

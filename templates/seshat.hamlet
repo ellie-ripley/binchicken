@@ -21,6 +21,6 @@
                         $maybe src <- M.lookup i (unSummary summ)
                             <td>#{show (totalPoints src)}
                             $forall et <- exts
-                                <td>#{show (exScore src et)}
+                                <td>#{displayScore (exScore src et)}
                         $nothing
                             <td>Error 23

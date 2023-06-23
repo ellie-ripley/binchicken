@@ -111,6 +111,7 @@ addAttempt et corr (SummaryRow em res) =
 
 -- | Takes lists of attempts and of users to create summary table
 -- | only counts attempts where the user is present in the list of users
+-- | assumes attempts sorted newest to oldest (current streak at head)
 tally :: [Entity User] -> [Entity Attempt] -> Summary Progress
 tally usrs = foldl' inserter (emptySumm usrs)
   where

@@ -19,7 +19,7 @@
                     <a .col-6.ex-link href="@{exerciseRoute et}">
                         #{fromEnum et}. #{prettyExerciseName et}
                     $maybe prog <- M.lookup et (unResults $ srResults sr)
-                      $with points <- pointsEarned targs prog
+                      $with points <- pointsEarned et prog
                         <div .row>
                           <div .col-md-4>
                               Total correct: #{totalCorrect prog}
@@ -63,6 +63,6 @@
                                   <p>Not yet!
                           <div .col-md-2>
                               <h6>Points earned:
-                              <h4>#{show $ pointsEarned (targets et) prog}
+                              <h4>#{show $ pointsEarned et prog}
                     $nothing
                         <p>Trouble reading streaks! (This is a bug in the site!)
