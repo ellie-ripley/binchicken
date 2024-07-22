@@ -214,16 +214,16 @@ instance Random Connective where
 -- SECTION: rendering
 
 displayNC :: NullaryConnective -> Text
-displayNC Verum = "TROO"
-displayNC Falsum = "_|_"
+displayNC Verum = "⊤"
+displayNC Falsum = "⊥"
 
 displayUC :: UnaryConnective -> Text
-displayUC Negation = "~"
+displayUC Negation = "¬"
 
 displayBC :: BinaryConnective -> Text
-displayBC Conjunction = "/\\"
-displayBC Disjunction = "\\/"
-displayBC Implication = "->"
+displayBC Conjunction = "∧"
+displayBC Disjunction = "∨"
+displayBC Implication = "→"
 
 displayConnective :: Connective -> Text
 displayConnective (CN n) = displayNC n

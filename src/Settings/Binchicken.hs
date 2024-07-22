@@ -25,17 +25,14 @@ defRandomFormulaSettings =
         { rfMaxDegree = 5
         , rfMinDegree = 0
         , rfAtomics = map atomic ['a'..'z']
-        , rfNullaryConns = []
+        , rfNullaryConns = [Falsum]
         , rfUnaryConns = [Negation]
-        , rfBinaryConns = [Conjunction, Disjunction]
+        , rfBinaryConns = [Conjunction, Disjunction, Implication]
         }
 
 defProofRandomFormulaSettings :: RandomFormulaSettings
 defProofRandomFormulaSettings =
   defRandomFormulaSettings
-    { rfNullaryConns = [Falsum]
-    , rfBinaryConns = [Conjunction, Disjunction, Implication]
-    }
 
 -- allow varying defaults by exercise type
 defaultRandomFormulaSettings :: ExerciseType -> RandomFormulaSettings
@@ -166,8 +163,4 @@ activeExerciseTypes =
   , EvaluateDunnBelnap
   , CounterexampleClassical
   , CounterexampleNonclassical
-  , ProofWithRequirements
-  , ProofIntuitionistic
-  , ProofNormalize
-  , CounterexampleIntuitionistic
   ]
