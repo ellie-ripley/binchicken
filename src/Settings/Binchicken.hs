@@ -33,14 +33,18 @@ defProofRandomFormulaSettings :: RandomFormulaSettings
 defProofRandomFormulaSettings =
   defRandomFormulaSettings
 
+defEvalRandomFormulaSettings :: RandomFormulaSettings
+defEvalRandomFormulaSettings =
+  defRandomFormulaSettings { rfDegreeWeights = [0, 0, 3, 3, 2, 1] }
+
 -- allow varying defaults by exercise type
 defaultRandomFormulaSettings :: ExerciseType -> RandomFormulaSettings
 defaultRandomFormulaSettings = \case
   DummyExercise                -> defRandomFormulaSettings
   IdentifyMainConnective       -> defRandomFormulaSettings
-  EvaluateBoolean              -> defRandomFormulaSettings
-  EvaluateStrongKleene         -> defRandomFormulaSettings
-  EvaluateDunnBelnap           -> defRandomFormulaSettings
+  EvaluateBoolean              -> defEvalRandomFormulaSettings
+  EvaluateStrongKleene         -> defEvalRandomFormulaSettings
+  EvaluateDunnBelnap           -> defEvalRandomFormulaSettings
   CounterexampleClassical      -> defRandomFormulaSettings
   CounterexampleNonclassical   -> defRandomFormulaSettings
   ProofWithRequirements        -> defProofRandomFormulaSettings
