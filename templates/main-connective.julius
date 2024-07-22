@@ -81,6 +81,20 @@ $(function() {
     });
   });
 
+  $("#js-button-implication").click(function() {
+    $.ajax({
+      url: '@{MainConnectiveR}',
+      type: 'POST',
+      contentType: "application/json",
+      data: JSON.stringify({
+        imcFormula: #{toJSON formula},
+        imcResponse: #{toJSON $ Just (CB Implication)}
+      }),
+      success: reportAnswer,
+      error: logError
+    });
+  });
+
   $("##{rawJS noMcButtonLabel}").click(function() {
     $.ajax({
       url: '@{MainConnectiveR}',
