@@ -11,19 +11,18 @@ import Foundation (Route(..), BinChicken)
 -- | May cause errors if things aren't sensible
 data RandomFormulaSettings =
   RandomFormulaSettings
-    { rfMaxDegree    :: Int
-    , rfMinDegree    :: Int
-    , rfAtomics      :: [Atomic]
-    , rfNullaryConns :: [NullaryConnective]
-    , rfUnaryConns   :: [UnaryConnective]
-    , rfBinaryConns  :: [BinaryConnective]
+    { rfDegreeWeights :: [Double]
+    , rfAtomics       :: [Atomic]
+    , rfNullaryConns  :: [NullaryConnective]
+    , rfUnaryConns    :: [UnaryConnective]
+    , rfBinaryConns   :: [BinaryConnective]
     }
+
 
 defRandomFormulaSettings :: RandomFormulaSettings
 defRandomFormulaSettings =
   RandomFormulaSettings
-        { rfMaxDegree = 5
-        , rfMinDegree = 0
+        { rfDegreeWeights = [1, 2, 2, 2, 1]
         , rfAtomics = map atomic ['a'..'z']
         , rfNullaryConns = [Falsum]
         , rfUnaryConns = [Negation]
@@ -96,9 +95,10 @@ defRandomSequentPreProofSettings =
 
 setMaxComplexity :: Int -> RandomSequentPreProofSettings -> RandomSequentPreProofSettings
 setMaxComplexity d setts =
-  setts { rsppraSettings =
-            (rsppraSettings setts) { rarfSettings =
-                                      (rarfSettings $ rsppraSettings setts) { rfMaxDegree = d } } }
+  setts {
+    rsppraSettings = (rsppraSettings setts) {
+        rarfSettings = (rarfSettings $ rsppraSettings setts) {
+            rfDegreeWeights = take d (rfDegreeWeights . rarfSettings . rsppraSettings $ setts)  } } }
 
 setMaxPremises :: Int -> RandomSequentPreProofSettings -> RandomSequentPreProofSettings
 setMaxPremises p setts =

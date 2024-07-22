@@ -166,6 +166,11 @@ fillUnary
 fillUnary setts g rl compon = first (SPPU rl compon <$>) mArgPair
   where
     (Argument oldPrems oldConc) = concSequent compon
+    used = degree oldConc
+    oldWeights = rfDegreeWeights setts
+    newMax = max 0 $ ((length oldWeights) - used) - 2
+    newWeights = take (newMax + 1) oldWeights
+    newSetts = setts { rfDegreeWeights = newWeights }
     mArgPair = case rl of
       CL ->
         let (midPrems, g1)
@@ -184,30 +189,18 @@ fillUnary setts g rl compon = first (SPPU rl compon <$>) mArgPair
             restOfPrems = chunk1 ++ chunk2 ++ chunk3
         in  (Just $ Argument (newConj : restOfPrems) oldConc, g3)
       DRL ->
-        let used = degree oldConc
-            newMin = max 0 $ (rfMinDegree setts - used) - 1
-            newMax = max 0 $ (rfMaxDegree setts - used) - 1
-            newSetts = setts { rfMinDegree = newMin, rfMaxDegree = newMax }
-            (newDisj, g1) = randomFormula newSetts g
+        let (newDisj, g1) = randomFormula newSetts g
             newConc = disj newDisj oldConc
         in  (Just $ Argument oldPrems newConc, g1)
       DRR ->
-        let used = degree oldConc
-            newMin = max 0 $ (rfMinDegree setts - used) - 1
-            newMax = max 0 $ (rfMaxDegree setts - used) - 1
-            newSetts = setts { rfMinDegree = newMin, rfMaxDegree = newMax }
-            (newDisj, g1) = randomFormula newSetts g
+        let (newDisj, g1) = randomFormula newSetts g
             newConc = disj oldConc newDisj
         in  (Just $ Argument oldPrems newConc, g1)
       NL -> (Just $ Argument (neg oldConc : oldPrems) fum, g)
       NR -> (Nothing, g)
       IR
         | null oldPrems || vacuous ->
-            let used = degree oldConc
-                newMin = max 0 $ (rfMinDegree setts - used) - 1
-                newMax = max 0 $ (rfMaxDegree setts - used) - 1
-                newSetts = setts { rfMinDegree = newMin, rfMaxDegree = newMax }
-                (newAnt, g2) = randomFormula newSetts g
+            let (newAnt, g2) = randomFormula newSetts g
                 newConc = impl newAnt oldConc
             in  (Just $ Argument oldPrems newConc, g2)
         | otherwise ->

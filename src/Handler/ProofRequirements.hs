@@ -44,7 +44,7 @@ fmSetts :: RandomFormulaSettings
 fmSetts = defaultRandomFormulaSettings ProofWithRequirements
 
 assumptionSetts :: RandomFormulaSettings
-assumptionSetts = fmSetts { rfMaxDegree = 2 }
+assumptionSetts = fmSetts { rfDegreeWeights = [1, 1, 1] }
 
 randomRequirements
   :: forall g. (SR.RandomGen g)

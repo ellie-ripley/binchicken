@@ -20,23 +20,51 @@ import Settings.Binchicken (RandomArgumentSettings(..), RandomFormulaSettings(..
 
 -- SECTION: Random formulas
 
+-- | given a finite nonempty list of Doubles and a Double,
+-- | gives the last coordinate in the list where the running sum
+-- | remains below the Double
+findCoord
+  :: [Double]
+  -> Double
+  -> Int
+findCoord [] _ = error "Shouldn't be here; a list was empty that needs entries!"
+findCoord (y:ys) u = go (y:ys) u 0 0
+  where
+    go []     _ _ i = i
+    go (x:xs) t s i =
+      if s < t && s + x >= t
+      then i
+      else go xs t (s + x) (i + 1)
+
+-- | picks a degree, following the specified weights
+randomDegree
+  :: (RandomGen g)
+  => RandomFormulaSettings
+  -> g
+  -> (Int, g)
+randomDegree setts g = (deg, h)
+  where
+    weights = rfDegreeWeights setts
+    (ind, h) = SR.randomR (0, sum weights) g
+    deg = findCoord weights ind
+
+-- | Given a degree, makes a list of weights where all weight is on that degree
+determinedDegree :: Int -> [Double]
+determinedDegree n
+  | n < 0  = error "No negative degrees!"
+  | n == 0 = [1]
+  | otherwise = 0 : determinedDegree (n - 1)
+
+
+
 -- | Gives a random formula following all settings
 randomFormula
   :: (RandomGen g)
   => RandomFormulaSettings  -- ^ Settings to use
   -> g
   -> (Formula, g)
-randomFormula setts g
-  -- check for negative degree, misformed degrees
-  | rfMaxDegree setts < 0 = error "Negative degree?!"
-  | rfMinDegree setts > rfMaxDegree setts = error "Minimum degree too high!"
-  | otherwise =
-      let minD = rfMinDegree setts
-          maxD = rfMaxDegree setts
-          -- minD and maxD will match on recursive calls; if they do, skip the roll
-          (deg, g1) = if minD == maxD
-                      then (minD, g)
-                      else SR.randomR (minD, maxD) g
+randomFormula setts g =
+      let (deg, g1) = randomDegree setts g
       in case deg of
            -- degree 0: pick an atomic from the list.
            0 -> let ats = rfAtomics setts
@@ -50,17 +78,11 @@ randomFormula setts g
                     (ix, g2) = SR.randomR (0, length connList - 1) g1
                 in case connList !! ix of
                      CN n -> (N n, g2)
-                     CU u -> let newSetts = setts { rfMinDegree = d - 1
-                                                  , rfMaxDegree = d - 1
-                                                  }
+                     CU u -> let newSetts = setts { rfDegreeWeights = determinedDegree (d - 1) }
                              in first (U u) $ randomFormula newSetts g2
                      CB b -> let (deg1, g3) = SR.randomR (0, d - 1) g2
-                                 setts1 = setts { rfMinDegree = deg1
-                                                , rfMaxDegree = deg1
-                                                }
-                                 setts2 = setts { rfMinDegree = (d - 1) - deg1
-                                                , rfMaxDegree = (d - 1) - deg1
-                                                }
+                                 setts1 = setts { rfDegreeWeights = determinedDegree (deg1) }
+                                 setts2 = setts { rfDegreeWeights = determinedDegree ((d - 1) - deg1) }
                                  (com1, g4) = randomFormula setts1 g3
                                  (com2, g5) = randomFormula setts2 g4
                              in (B b com1 com2, g5)
@@ -73,10 +95,9 @@ randomFormulaFixedDegree
   -> Int                   -- ^ Desired degree
   -> g
   -> (Formula, g)
-randomFormulaFixedDegree setts d g = let newSetts = setts { rfMinDegree = d
-                                                          , rfMaxDegree = d
-                                                          }
-                                   in randomFormula newSetts g
+randomFormulaFixedDegree setts d g =
+  let newSetts = setts { rfDegreeWeights = determinedDegree d }
+  in randomFormula newSetts g
 
 randomFormulaIO :: RandomFormulaSettings -> IO Formula
 randomFormulaIO setts = SR.getStdRandom $ randomFormula setts
@@ -114,7 +135,7 @@ randomArgument setts g
           maxPs = max minPs (raMaxPremises setts)
           maxDeg = raMaxDegree setts
           rfSetts = rarfSettings setts
-          maxFDeg = rfMaxDegree rfSetts
+          maxFDeg = length (rfDegreeWeights rfSetts)
           (numPrems, g1) = SR.randomR (minPs, maxPs) g -- ^ random number of premises
           (g2, h) = SR.split g1 -- ^ split generator so we can unfold one and throw it out
           degs = NE.unfoldr (go maxFDeg) (numPrems, maxDeg, g2)
