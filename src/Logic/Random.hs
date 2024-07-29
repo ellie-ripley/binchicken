@@ -123,6 +123,8 @@ randomFormulas setts n g
 
 -- | Given a RandomArgumentSettings and a seed, produces a random argument in accord with those settings and a new seed
 -- | Malformed settings: negative degree errors, negative minpremises set to 0, maxpremises < minpremises gets adjusted up to minpremises. No checks on RandomFormulaSettings; these are passed to the formula randomizing functions
+-- | This ignores the degree weighting in the random formula settings, except to determine
+-- | a maximum degree
 randomArgument :: RandomGen g
                => RandomArgumentSettings
                -> g
