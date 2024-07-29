@@ -112,15 +112,15 @@ addAttempt et corr (SummaryRow em res) =
 -- | Takes lists of attempts and of users to create summary table
 -- | only counts attempts where the user is present in the list of users
 -- | assumes attempts sorted newest to oldest (current streak at head)
-tally :: [Entity User] -> [Entity Attempt] -> Summary Progress
+tally :: [Entity User] -> [(Entity Attempt, Entity Exercise)] -> Summary Progress
 tally usrs = foldl' inserter (emptySumm usrs)
   where
     inserter :: Summary Progress -> Entity Attempt -> Summary Progress
-    inserter srs (Entity _ att) =
+    inserter srs ((Entity _ att), (Entity _ ex)) =
       case attemptUserId att of -- does the attempt have a user id?
         Nothing  -> srs
         Just uid -> Summary $ M.adjust
-                                (addAttempt (attemptExerciseType att) (attemptIsCorrect att))
+                                (addAttempt (exerciseExerciseType ex) (attemptIsCorrect att))
                                 uid
                                 (unSummary srs)
 

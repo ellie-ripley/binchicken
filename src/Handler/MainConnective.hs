@@ -46,7 +46,7 @@ import Logic.Random (randomFormulaIO)
 import Settings.Binchicken (RandomFormulaSettings(..), defaultRandomFormulaSettings)
 
 data IMCAttempt =
-  IMCAttempt { imcFormula :: Formula
+  IMCAttempt { imcExerciseId :: ExerciseId
              , imcResponse :: Maybe Connective
              } deriving (Generic)
 
@@ -80,11 +80,11 @@ postMainConnectiveR = do
     case tryIMC of
       Error err -> returnJson err
       Success imcAttempt -> do
-        let corr = mainConnective (imcFormula imcAttempt) == imcResponse imcAttempt
+        (exid, ex) <- runDB $ getEntity (imcExerciseId imcAttempt)
+        let corr = mainConnective (maybe (CN Verum) (read . unpack $ exerciseExerciseContent ex)) == imcResponse imcAttempt
             attempt = Attempt { attemptUserId = Nothing
-                              , attemptExerciseType = IdentifyMainConnective
+                              , attemptExerciseId = exid
                               , attemptIsCorrect = corr
-                              , attemptExerciseContent = Just (pack . show . imcFormula $ imcAttempt)
                               , attemptSubmittedResponse = case imcResponse imcAttempt of
                                   Nothing -> Nothing
                                   Just con -> Just (pack $ show con)

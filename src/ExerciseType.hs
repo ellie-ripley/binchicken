@@ -18,10 +18,6 @@ data ExerciseType =
   | EvaluateDunnBelnap
   | CounterexampleClassical
   | CounterexampleNonclassical
-  | ProofWithRequirements
-  | ProofIntuitionistic
-  | ProofNormalize
-  | CounterexampleIntuitionistic
   deriving (Eq, Read, Show, Enum, Ord, Bounded, Generic)
 instance ToJSON ExerciseType
 instance FromJSON ExerciseType
@@ -36,10 +32,6 @@ prettyExerciseName = \case
   EvaluateDunnBelnap -> "Evaluate in the Dunn-Belnap structure"
   CounterexampleClassical -> "Give a classical counterexample, if there is one"
   CounterexampleNonclassical -> "Give a counterexample, if there is one, in the indicated matrix"
-  ProofWithRequirements -> "Provide a proof in NJ that meets certain requirements"
-  ProofIntuitionistic -> "Provide a proof of an argument in NJ"
-  ProofNormalize -> "Give a proof in NJ and normalize it"
-  CounterexampleIntuitionistic -> "Give an intuitionistic counterexample or proof for an argument"
 
 data ExerciseTargets =
   ExerciseTargets { totalMilestone1 :: Int

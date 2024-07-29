@@ -9,10 +9,18 @@ User
     UniqueUser email
     deriving Typeable
 
+Exercise
+    exerciseType ExerciseType
+    exerciseContent Text
+
 Attempt json
     userId UserId Maybe
-    exerciseType ExerciseType
+    exerciseId ExerciseId Maybe   -- Maybe used in parsing
     isCorrect Bool
-    exerciseContent Text Maybe
     submittedResponse Text Maybe
     submittedAt UTCTime Maybe default=CURRENT_TIMESTAMP
+
+SentExercise
+    userId UserId Maybe
+    exerciseId ExerciseId
+    sentAt UTCTime Maybe default=CURRENT_TIMESTAMP

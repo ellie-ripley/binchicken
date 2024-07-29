@@ -98,11 +98,6 @@ import Handler.EvalDunnBelnap (getEvalDunnBelnapR, postEvalDunnBelnapR)
 import Handler.CounterexClassical (getCounterexClassicalR, postCounterexClassicalR)
 import Handler.CounterexNonclassical (getCounterexNonclassicalR, postCounterexNonclassicalR)
 import Handler.Progress ( getProgressR )
-import Handler.ProofRequirements ( getProofRequirementsR, postProofRequirementsR )
-import Handler.ProofIntuitionistic ( getProofIntuitionisticR, postProofIntuitionisticR )
-import Handler.ProofNormalize ( getProofNormalizeR, postProofNormalizeR )
-import Handler.CounterexIntuitionistic ( getCounterexIntuitionisticR, postCounterexIntuitionisticR )
-import Handler.ProofPlayground ( getProofPlaygroundR, postProofPlaygroundR )
 import Handler.Seshat ( getSeshatR )
 
 -- This line actually creates our YesodDispatch instance. It is the second half
