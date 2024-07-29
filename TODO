@@ -1,0 +1,9 @@
+TODOS:
+- implement lambda exercises
+- resurrect proof exercises
+- make refreshing break streaks
+  - or (more complex) force finishing the *last* exercise given to maintain streak?
+    - requires saving last exercise given (of each type)
+- implement degree weighting for random arguments
+- check login system
+- check database format - switch to storing just scores?
