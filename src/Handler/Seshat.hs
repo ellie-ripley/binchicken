@@ -7,8 +7,11 @@ module Handler.Seshat where
 import Foundation ( Handler )
 import Import.NoFoundation ( Attempt(..)
                            , Entity(..)
+                           , EntityField(..)
+                           , Exercise(..)
                            , Html
                            , Key(..)
+                           , Score(..)
                            , User(..)
                            , Yesod(..)
                            , runDB
@@ -16,7 +19,7 @@ import Import.NoFoundation ( Attempt(..)
                            , setTitle
                            , widgetFile
                            )
-import Database.Esqueleto.Legacy (BackendKey(..))
+import Database.Esqueleto
 
 import qualified Data.Map as M
 
@@ -42,8 +45,8 @@ displayScore =
 getSeshatR :: Handler Html
 getSeshatR = do
   (usrs :: [Entity User]) <- runDB $ selectList [] []
-  (atts :: [Entity Attempt]) <- runDB $ selectList [] []
-  let summ = calculateSummary $ tally usrs atts
+  (scs :: [Entity Score]) <- runDB $ selectList [] []
+  let summ = calculateSummary $ tally scs
       exts = activeExerciseTypes
   defaultLayout $ do
     setTitle "Seshat"

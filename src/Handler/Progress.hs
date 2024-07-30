@@ -36,18 +36,18 @@ import Import.NoFoundation
       null,
       pack,
       redirect,
+      selectList,
       setTitle,
       Html,
-      EntityField(AttemptSubmittedAt, AttemptUserId),
+      EntityField(..),
       Yesod(defaultLayout),
-      YesodPersist(runDB),
+      YesodPersist(..),
       widgetFile,
       img_ibis_icon_png,
       YesodAuth(maybeAuthId) )
 import GHC.Float.RealFracMethods (roundDoubleInt)
 import qualified Data.Map as M
-import qualified Database.Esqueleto.Legacy as E
-import Database.Esqueleto.Legacy ((^.), (==.))
+import Database.Esqueleto
 
 import Scoring
   ( Progress(..)
@@ -71,12 +71,8 @@ getProgressR = do
         case muser of
           Nothing -> error "Logged in as a nonexistent user? This is a bug in the site."
           Just user -> do
-            atts <- runDB $ E.select $
-                E.from $ \att -> do
-                E.where_ (att ^. AttemptUserId ==. E.just (E.val uid))
-                E.orderBy [E.desc (att ^. AttemptSubmittedAt)]    --Newest to oldest, so current streak is at head
-                return att
-            let tal = tally [user] atts
+            scs <- runDB $ selectList [] []
+            let tal = tally scs
                 sr  = case M.lookup uid (unSummary tal) of
                           Just succ -> succ
                           Nothing   -> error "Error 2323!"

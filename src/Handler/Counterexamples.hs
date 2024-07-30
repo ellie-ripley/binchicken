@@ -16,6 +16,8 @@ import Foundation (Route(..), Handler, Widget, BinChicken)
 import Import.NoFoundation
     ( ($),
       (<>),
+      Exercise(..),
+      Key,
       Maybe(..),
       Value,
       Generic,
@@ -130,8 +132,8 @@ processPost obj = do
                       FDETag -> MysteryValuation (objToValuation valObj :: Valuation FDEMatrix)
       return $ ParsedObject arg matTag (Just mystval)
 
-prepareResponse :: ExerciseType -> ParsedObject -> (Value, Attempt)
-prepareResponse exType (ParsedObject arg matTag Nothing) = (responseObj, att)
+prepareResponse :: Key Exercise -> ParsedObject -> (Value, Attempt)
+prepareResponse exid (ParsedObject arg matTag Nothing) = (responseObj, att)
   where
     (corr, responseObj) =
       case isValidMV matTag arg of
@@ -150,17 +152,13 @@ prepareResponse exType (ParsedObject arg matTag Nothing) = (responseObj, att)
                )
     justTextify = Just . toStrict . encodeToLazyText
     att = Attempt { attemptUserId = Nothing
-                  , attemptExerciseType = exType
+                  , attemptExerciseId = exid
                   , attemptIsCorrect = corr
-                  , attemptExerciseContent =
-                      justTextify $ object [ "argument" .= toJSON arg
-                                           , "matrix" .= toJSON matTag
-                                           ]
                   , attemptSubmittedResponse =
                       justTextify $ object [ "response" .= toJSON ("Valid" :: Text)]
                   , attemptSubmittedAt = Nothing
                   }
-prepareResponse exType (ParsedObject arg matTag (Just mystVal@(MysteryValuation actualVal))) = (responseObj, att)
+prepareResponse exid (ParsedObject arg matTag (Just mystVal@(MysteryValuation actualVal))) = (responseObj, att)
   where
     (corr, responseObj) =
       case isCexMV mystVal arg of
@@ -186,12 +184,8 @@ prepareResponse exType (ParsedObject arg matTag (Just mystVal@(MysteryValuation 
               )
     justTextify = Just . toStrict . encodeToLazyText
     att = Attempt { attemptUserId = Nothing
-                  , attemptExerciseType = exType
+                  , attemptExerciseId = exid
                   , attemptIsCorrect = corr
-                  , attemptExerciseContent =
-                      justTextify $ object [ "argument" .= toJSON arg
-                                           , "matrix" .= toJSON matTag
-                                           ]
                   , attemptSubmittedResponse =
                       justTextify $ object [ "response" .= toJSON (HasCounterexample actualVal) ]
                   , attemptSubmittedAt = Nothing

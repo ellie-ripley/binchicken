@@ -9,13 +9,13 @@ User
     UniqueUser email
     deriving Typeable
 
-Exercise
+Exercise json
     exerciseType ExerciseType
     exerciseContent Text
 
 Attempt json
     userId UserId Maybe
-    exerciseId ExerciseId Maybe   -- Maybe used in parsing
+    exerciseId ExerciseId
     isCorrect Bool
     submittedResponse Text Maybe
     submittedAt UTCTime Maybe default=CURRENT_TIMESTAMP
@@ -24,3 +24,10 @@ SentExercise
     userId UserId Maybe
     exerciseId ExerciseId
     sentAt UTCTime Maybe default=CURRENT_TIMESTAMP
+
+Score
+    userId UserId
+    exerciseType ExerciseType
+    numCorrect Int
+    bestStreak Int
+    currentStreak Int
