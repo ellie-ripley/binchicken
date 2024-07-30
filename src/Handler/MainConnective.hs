@@ -16,26 +16,29 @@ import Import.NoFoundation
       Entity(..),
       Eq((==)),
       Exercise(..),
-      Show(show),
       Generic,
       Key,
       Maybe(..),
+      MonadIO(liftIO),
       FromJSON,
-      Value,
+      SentExercise(..),
+      Show(show),
       ToJSON(toJSON),
       Text,
-      MonadIO(liftIO),
+      Value,
       (++),
       error,
       fromMaybe,
       map,
       pack,
       getEntity,
+      insert,
       insertEntity,
       getCurrentTime,
       parseCheckJsonBody,
       returnJson,
       setTitle,
+      toStrict,
       (.),
       Html,
       Yesod(defaultLayout),
@@ -44,9 +47,10 @@ import Import.NoFoundation
       Attempt(..),
       YesodAuth(maybeAuthId) )
 import Text.Julius (RawJS (..))
-import Data.Aeson (Result(..), (.=), decodeStrict, object)
-import Data.Text.Encoding (encodeUtf8)
+import Data.Aeson (Result(..), (.=), decodeStrict, encode, object)
+import Data.Text.Encoding (decodeUtf8, encodeUtf8)
 
+import Handler.Common (updateScore)
 import Handler.LoginCheck (loginNotifyW)
 import Logic.Formulas
   ( Connective(..),
@@ -61,6 +65,7 @@ import Logic.Formulas
     mainConnective,
     nameConnective )
 import Logic.Random (randomFormulaIO)
+import Scoring (Correct(..), boolToCorrect)
 import Settings.Binchicken (RandomFormulaSettings(..), defaultRandomFormulaSettings)
 
 data IMCAttempt =
@@ -79,6 +84,14 @@ mcConns = map CN (rfNullaryConns setts :: [NullaryConnective]) -- type signature
             ++ map CU (rfUnaryConns setts)
             ++ map CB (rfBinaryConns setts)
 
+
+-- | we want decodeMC (encodeMC fm) == Just fm, for every formula
+decodeMC :: Text -> Maybe Formula
+decodeMC tx = decodeStrict $ encodeUtf8 tx
+
+encodeMC :: Formula -> Text
+encodeMC fm = decodeUtf8 . toStrict $ encode fm
+
 getMainConnectiveR :: Handler Html
 getMainConnectiveR = do
     let buttonList = buttons
@@ -88,12 +101,25 @@ getMainConnectiveR = do
         buttonsId = "js-response-buttons" :: Text
         nuttin = Nothing :: Maybe Connective
     (formula :: Formula) <- liftIO $ randomFormulaIO setts
-    defaultLayout $ do
+    let ex = Exercise { exerciseExerciseType = IdentifyMainConnective
+                      , exerciseExerciseContent = encodeMC formula
+                      }
+    exid <- runDB $ insert ex
+    maybeCurrentUserId <- maybeAuthId
+    case maybeCurrentUserId of
+      Just uid -> do
+        now <- liftIO getCurrentTime
+        let sent = SentExercise { sentExerciseUserId = Just uid
+                                , sentExerciseExerciseId = exid
+                                , sentExerciseSentAt = Just now
+                                }
+        _ <- runDB $ insert sent
+        defaultLayout $ do
+          setTitle "Identify the main connective"
+          $(widgetFile "main-connective")
+      Nothing -> defaultLayout $ do
         setTitle "Identify the main connective"
         $(widgetFile "main-connective")
-
-decodeMC :: Text -> Maybe Formula
-decodeMC tx = decodeStrict (encodeUtf8 tx)
 
 postMainConnectiveR :: Handler Value
 postMainConnectiveR = do
@@ -116,15 +142,16 @@ postMainConnectiveR = do
                                       Just con -> Just (pack $ show con)
                                   , attemptSubmittedAt = Nothing
                                   }
-                responseObj = object [ "rexercise" .= (show $ imcExerciseId imcAttempt)
-                                    , "rconn" .= (displayMaybeConnective $ imcResponse imcAttempt)
-                                    ]
+                responseObj = object [ "rformula" .= (displayFormula fmla)
+                                     , "rconn" .= (displayMaybeConnective $ imcResponse imcAttempt)
+                                     ]
             maybeCurrentUserId <- maybeAuthId
             case maybeCurrentUserId of
                 Just uid -> do
                     now <- liftIO getCurrentTime
                     let attempt' = attempt { attemptUserId = Just uid, attemptSubmittedAt = Just now }
                     insertedAttempt <- runDB $ insertEntity attempt'
+                    updateScore uid IdentifyMainConnective (boolToCorrect corr)
                     returnJson (insertedAttempt, responseObj)
                 Nothing -> returnJson (attempt, responseObj)
 

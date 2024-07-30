@@ -72,7 +72,7 @@ getProgressR = do
           Nothing -> error "Logged in as a nonexistent user? This is a bug in the site."
           Just user -> do
             scs <- runDB $ selectList [] []
-            let tal = tally scs
+            let tal = tally [user] scs
                 sr  = case M.lookup uid (unSummary tal) of
                           Just succ -> succ
                           Nothing   -> error "Error 2323!"

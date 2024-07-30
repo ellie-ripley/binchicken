@@ -12,6 +12,8 @@ import Import.NoFoundation
   , fmap
   , foldl'
   , foldr
+  , fst
+  , map
   , max
   , otherwise
   , Attempt(..)
@@ -27,12 +29,12 @@ import Import.NoFoundation
   , Read
   , Score(..)
   , Show(..)
-  , Text
   , User(..)
   )
 
 import Data.Map (Map)
 import qualified Data.Map                  as M
+import Data.Text (Text)
 
 import ExerciseType
   ( ExerciseTargets(..)
@@ -48,13 +50,42 @@ data Progress =
            }
   deriving (Eq, Read, Show)
 
+data Correct = Correct | Incorrect
+  deriving (Eq, Read, Show)
+
+boolToCorrect :: Bool -> Correct
+boolToCorrect True  = Correct
+boolToCorrect False = Incorrect
+
+-- | Progress before anything is done
+zeroProgress :: Progress
+zeroProgress = Progress 0 0 0
+
+-- | updates Progress in light of a correct or incorrect answer
+updateProgress
+  :: Correct
+  -> Progress
+  -> Progress
+updateProgress Correct p =
+  p { currentStreak = (currentStreak p) + 1
+    , bestStreak = if (currentStreak p) + 1 > (bestStreak p)
+                    then (currentStreak p) + 1
+                    else (bestStreak p)
+    , totalCorrect = (totalCorrect p) + 1
+    }
+updateProgress Incorrect p =
+  p { currentStreak = 0 }
+
 -- | Information about a single user's overall progress
 newtype Results a = Results { unResults :: Map ExerciseType a }
   deriving(Functor)
 
+blankResults :: Results Progress
+blankResults = Results (M.fromList $ map (\et -> (et, zeroProgress)) activeExerciseTypes)
+
 data SummaryRow a = SummaryRow
   { srUid :: Key User
-  , srEmail :: Maybe Text
+  , srEmail :: Text
   , srResults :: Results a
   }
   deriving(Functor)
@@ -80,17 +111,37 @@ updateSummaryRow
 updateSummaryRow et pr sr =
   sr { srResults = Results (M.insert et pr (unResults $ srResults sr)) }
 
--- | Takes a list of rows from the Score table and produces a summary table
+userPair :: Entity User -> (Key User, Text)
+userPair (Entity uid u) = (uid, userEmail u)
+
+-- | Generates a SummaryRow for a user, with no results recorded
+blankSummaryRow
+  :: Entity User
+  -> SummaryRow Progress
+blankSummaryRow u =
+  let (k, me) = userPair u
+  in  SummaryRow k me blankResults
+
+-- | Takes a list of user/email pairs and generates a Summary for all users with no results
+blankSummary
+  :: [Entity User]
+  -> Summary Progress
+blankSummary [] = Summary M.empty
+blankSummary (u:usrs) = Summary $ M.insert (fst $ userPair u) (blankSummaryRow u) (unSummary $ blankSummary usrs)
+
+-- | Takes lists of user/email pairs and rows from the Score table and produces a summary table
 -- | results only reasonable if we have either all Score rows or none for each user
-tally :: [Entity Score] -> Summary Progress
-tally [] = Summary M.empty
-tally ((Entity _ sc):xs) =
+tally
+  :: [Entity User] -- user/email pairs
+  -> [Entity Score]     -- Score rows
+  -> Summary Progress
+tally usrs [] = blankSummary usrs
+tally usrs ((Entity _ sc):xs) =
   Summary
    . M.adjust (updateSummaryRow (scoreExerciseType sc) (tally_aux sc))
               (scoreUserId sc)
-   . unSummary $ tally xs
+   . unSummary $ tally usrs xs
 
--- TODO: something's not right here. Where does the initial email get filled in, even with Nothing?
 
 
 

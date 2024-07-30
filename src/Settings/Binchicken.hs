@@ -41,7 +41,8 @@ defEvalRandomFormulaSettings =
 defaultRandomFormulaSettings :: ExerciseType -> RandomFormulaSettings
 defaultRandomFormulaSettings = \case
   DummyExercise                -> defRandomFormulaSettings
-  IdentifyMainConnective       -> defRandomFormulaSettings
+  IdentifyMainConnective       ->
+    defRandomFormulaSettings { rfDegreeWeights = [1, 1, 5, 5, 4, 3] }
   EvaluateBoolean              -> defEvalRandomFormulaSettings
   EvaluateStrongKleene         -> defEvalRandomFormulaSettings
   EvaluateDunnBelnap           -> defEvalRandomFormulaSettings

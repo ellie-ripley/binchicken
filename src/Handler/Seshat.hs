@@ -41,12 +41,11 @@ displayScore =
   \case Nothing -> "Missing"
         Just i  -> show i
 
-
 getSeshatR :: Handler Html
 getSeshatR = do
   (usrs :: [Entity User]) <- runDB $ selectList [] []
   (scs :: [Entity Score]) <- runDB $ selectList [] []
-  let summ = calculateSummary $ tally scs
+  let summ = calculateSummary $ tally usrs scs
       exts = activeExerciseTypes
   defaultLayout $ do
     setTitle "Seshat"

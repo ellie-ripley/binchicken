@@ -38,6 +38,22 @@ function logError(data) {
 }
 
 $(function() {
+
+  $("#js-button-falsum").click(function() {
+    // Make an AJAX request to the server to create a new attempt
+    $.ajax({
+      url: '@{MainConnectiveR}',
+      type: 'POST',
+      contentType: "application/json",
+      data: JSON.stringify({
+        imcExerciseId: #{toJSON exid},
+        imcResponse: #{toJSON $ Just (CN Falsum)}
+      }),
+      success: reportAnswer,
+      error: logError
+    });
+  });
+
   $("#js-button-negation").click(function() {
     // Make an AJAX request to the server to create a new attempt
     $.ajax({
@@ -45,7 +61,7 @@ $(function() {
       type: 'POST',
       contentType: "application/json",
       data: JSON.stringify({
-        imcFormula: #{toJSON formula},
+        imcExerciseId: #{toJSON exid},
         imcResponse: #{toJSON $ Just (CU Negation)}
       }),
       success: reportAnswer,
@@ -59,7 +75,7 @@ $(function() {
       type: 'POST',
       contentType: "application/json",
       data: JSON.stringify({
-        imcFormula: #{toJSON formula},
+        imcExerciseId: #{toJSON exid},
         imcResponse: #{toJSON $ Just (CB Conjunction)}
       }),
       success: reportAnswer,
@@ -73,7 +89,7 @@ $(function() {
       type: 'POST',
       contentType: "application/json",
       data: JSON.stringify({
-        imcFormula: #{toJSON formula},
+        imcExerciseId: #{toJSON exid},
         imcResponse: #{toJSON $ Just (CB Disjunction)}
       }),
       success: reportAnswer,
@@ -87,7 +103,7 @@ $(function() {
       type: 'POST',
       contentType: "application/json",
       data: JSON.stringify({
-        imcFormula: #{toJSON formula},
+        imcExerciseId: #{toJSON exid},
         imcResponse: #{toJSON $ Just (CB Implication)}
       }),
       success: reportAnswer,
@@ -101,7 +117,7 @@ $(function() {
       type: 'POST',
       contentType: "application/json",
       data: JSON.stringify({
-        imcFormula: #{toJSON formula},
+        imcExerciseId: #{toJSON exid},
         imcReponse: #{toJSON nuttin}
       }),
       success: reportAnswer,
