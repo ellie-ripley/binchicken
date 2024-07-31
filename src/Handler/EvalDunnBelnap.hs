@@ -21,6 +21,7 @@ import Import.NoFoundation
       Generic,
       Maybe(..),
       FromJSON,
+      SentExercise(..),
       Value,
       ToJSON(toJSON),
       Text,
@@ -29,6 +30,7 @@ import Import.NoFoundation
       error,
       fromMaybe,
       getEntity,
+      insert,
       map,
       pack,
       insertEntity,
@@ -36,6 +38,7 @@ import Import.NoFoundation
       parseCheckJsonBody,
       returnJson,
       setTitle,
+      toStrict,
       (.),
       Html,
       Yesod(defaultLayout),
@@ -45,10 +48,11 @@ import Import.NoFoundation
       YesodAuth(maybeAuthId),
       Bounded(..) )
 import Text.Julius (RawJS (..))
-import Data.Aeson (Result(..), (.=), object, decodeStrict)
+import Data.Aeson (Result(..), (.=), object, decodeStrict, encode)
 import qualified Data.Map.Strict as Map
-import Data.Text.Encoding (encodeUtf8)
+import Data.Text.Encoding (decodeUtf8, encodeUtf8)
 
+import Handler.Common (updateScore)
 import Handler.LoginCheck (loginNotifyW)
 import Logic.Formulas
   ( Formula,
@@ -58,6 +62,7 @@ import Logic.Formulas
     displayFormula,
     atomsIn )
 import Logic.Random (randomFormulaIO, randomValuationSelectAtomicsIO)
+import Scoring (boolToCorrect)
 import Settings.Binchicken (RandomFormulaSettings(..), defaultRandomFormulaSettings)
 import Logic.Valuations (DunnBelnapStructure(..), Valuation, ValDisplay(..), eval)
 
@@ -72,6 +77,16 @@ instance FromJSON IEDBAttempt
 setts :: RandomFormulaSettings
 setts = defaultRandomFormulaSettings EvaluateDunnBelnap
 
+
+decodeEDB :: Text -> Maybe (Formula, Valuation DunnBelnapStructure)
+decodeEDB bs = decodeStrict $ encodeUtf8 bs
+
+encodeEDB
+  :: Formula
+  -> Valuation DunnBelnapStructure
+  -> Text
+encodeEDB fm vdb = decodeUtf8 . toStrict $ encode (fm, vdb)
+
 getEvalDunnBelnapR :: Handler Html
 getEvalDunnBelnapR = do
     let buttonList = buttons
@@ -82,12 +97,26 @@ getEvalDunnBelnapR = do
     (formula :: Formula) <- liftIO $ randomFormulaIO setts
     let ats = atomsIn formula
     (dbval :: Valuation DunnBelnapStructure) <- liftIO $ randomValuationSelectAtomicsIO ats
-    defaultLayout $ do
+    let ex = Exercise { exerciseExerciseType = EvaluateDunnBelnap
+                      , exerciseExerciseContent = encodeEDB formula dbval
+                      }
+    exid <- runDB $ insert ex
+    maybeCurrentUserId <- maybeAuthId
+    case maybeCurrentUserId of
+      Just uid -> do
+        now <- liftIO getCurrentTime
+        let sent = SentExercise { sentExerciseUserId = Just uid
+                                , sentExerciseExerciseId = exid
+                                , sentExerciseSentAt = Just now
+                                }
+        _ <- runDB $ insert sent
+        defaultLayout $ do
+            setTitle "Evaluate in the Dunn-Belnap structure"
+            $(widgetFile "eval-dunn-belnap")
+      Nothing -> defaultLayout $ do
         setTitle "Evaluate in the Dunn-Belnap structure"
         $(widgetFile "eval-dunn-belnap")
 
-decodeEDB :: Text -> Maybe (Formula, Valuation DunnBelnapStructure)
-decodeEDB bs = decodeStrict $ encodeUtf8 bs
 
 postEvalDunnBelnapR :: Handler Value
 postEvalDunnBelnapR = do
@@ -108,7 +137,7 @@ postEvalDunnBelnapR = do
                                   , attemptSubmittedResponse = Just . pack $ show rsp
                                   , attemptSubmittedAt = Nothing
                                   }
-                responseObj = object [ "rexercise" .= (show $ iedbExerciseId iedbAttempt)
+                responseObj = object [ "rformula" .= (displayFormula fmla)
                                      , "rval" .= (displayVal $ iedbResponse iedbAttempt)
                                      ]
             maybeCurrentUserId <- maybeAuthId
@@ -117,6 +146,7 @@ postEvalDunnBelnapR = do
                     now <- liftIO getCurrentTime
                     let attempt' = attempt { attemptUserId = Just uid, attemptSubmittedAt = Just now }
                     insertedAttempt <- runDB $ insertEntity attempt'
+                    updateScore uid EvaluateDunnBelnap (boolToCorrect corr)
                     returnJson (insertedAttempt, responseObj)
                 Nothing -> returnJson (attempt, responseObj)
 

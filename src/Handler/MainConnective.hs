@@ -65,7 +65,7 @@ import Logic.Formulas
     mainConnective,
     nameConnective )
 import Logic.Random (randomFormulaIO)
-import Scoring (Correct(..), boolToCorrect)
+import Scoring (boolToCorrect)
 import Settings.Binchicken (RandomFormulaSettings(..), defaultRandomFormulaSettings)
 
 data IMCAttempt =

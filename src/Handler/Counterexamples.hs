@@ -23,6 +23,7 @@ import Import.NoFoundation
       Generic,
       IO,
       Int,
+      SentExercise(..),
       Text,
       Bool(..),
       MonadIO(liftIO),
@@ -34,23 +35,29 @@ import Import.NoFoundation
       widgetFile,
       Attempt(..),
       LazySequence (toStrict),
+      getCurrentTime,
       hamlet,
+      insert,
       julius,
       lucius,
+      maybeAuthId,
       whamlet,
       toWidget,
       newIdent,
       not,
       map,
+      runDB,
       toHtml,
+      toStrict,
       return,
       error,
       length,
       (-))
 import Text.Julius (RawJS (..))
-import Data.Aeson (Object, Result(..), (.=), (.:), object, toJSON, ToJSON, FromJSON)
+import Data.Aeson (Object, Result(..), (.=), (.:), decodeStrict, encode, object, toJSON, ToJSON, FromJSON)
 import Data.Aeson.Text (encodeToLazyText)
 import Data.Aeson.Types (parse)
+import Data.Text.Encoding (decodeUtf8, encodeUtf8)
 import qualified System.Random as SR
 
 import Handler.LoginCheck (loginNotifyW)
@@ -59,7 +66,23 @@ import Logic.Random (randomArgumentIO)
 import Settings.Binchicken (RandomArgumentSettings(..))
 import Logic.Valuations (Valuation, ValDisplay(..), displayVal, displayValuationHtml, objToValuation)
 import Logic.Arguments (Argument(..), atomsInArg)
-import Logic.Matrices (IsCounterexample(..), IsValid(..), displayUPsHTML, displayDCHTML, MatrixInfo(..), ClassicalMatrix, K3Matrix, LPMatrix, FDEMatrix, MysteryValuation(..), MatrixTag(..), isValidMV, IsValidMV(..), isCexMV, displayNameMatrix)
+import Logic.Matrices
+  ( IsCounterexample(..),
+    IsValid(..),
+    displayMMVHtml,
+    displayUPsHTML,
+    displayDCHTML,
+    MatrixInfo(..),
+    ClassicalMatrix,
+    K3Matrix,
+    LPMatrix,
+    FDEMatrix,
+    MysteryMatrixValuation(..),
+    MatrixTag(..),
+    isValidMV,
+    IsValidMV(..),
+    isCexMV,
+    displayNameMatrix )
 
 
 data CexOutcome =
@@ -80,15 +103,33 @@ randomElement xs = do
   ix <- SR.getStdRandom (SR.randomR (0, length xs - 1))
   return (xs !! ix)
 
+data ICEXAttempt =
+  ICEXAttempt { icexExerciseId :: Key Exercise
+              , icexResponse :: MysteryMatrixValuation
+              } deriving (Generic)
+
+instance ToJSON ICEXAttempt
+instance FromJSON ICEXAttempt
+
+decodeCex :: Text -> Maybe (Argument, MatrixTag)
+decodeCex tx = decodeStrict $ encodeUtf8 tx
+
+encodeCex
+  :: Argument
+  -> MatrixTag
+  -> Text
+encodeCex arg mt = decodeUtf8 . toStrict $ encode (arg, mt)
+
 getCounterexample
   :: RandomArgumentSettings     -- ^ settings for the random argument
   -> [MatrixInfo]               -- ^ a list of matrices; one will be chosen at random
+  -> ExerciseType               -- ^ the type of the generated exercise
   -> Text                       -- ^ title for the generated page
   -> Text                       -- ^ header text
   -> Text                       -- ^ any extra instructional text
   -> Route BinChicken           -- ^ Route to send AJAX to
   -> Handler Html
-getCounterexample ras mats title headr extraText ajaxRoute = do
+getCounterexample ras mats etype title headr extraText ajaxRoute = do
     let displayArgumentId = "js-display-argument" :: Text
         inputValuationId = "js-input-valuation" :: Text
         displayResultId = "js-display-result" :: Text
@@ -100,7 +141,23 @@ getCounterexample ras mats title headr extraText ajaxRoute = do
         atsJs = toJSON . map displayAtomic $ ats
         valsToChooseFrom = vls
         matrxTag = displayNameMatrix mtag
-    defaultLayout $ do
+        ex = Exercise { exerciseExerciseType = etype
+                      , exerciseExerciseContent = encodeCex arg mtag
+                      }
+    exid <- runDB $ insert ex
+    maybeCurrentUserId <- maybeAuthId
+    case maybeCurrentUserId of
+      Just uid -> do
+        now <- liftIO getCurrentTime
+        let sent = SentExercise { sentExerciseUserId = Just uid
+                                , sentExerciseExerciseId = exid
+                                , sentExerciseSentAt = Just now
+                                }
+        _ <- runDB $ insert sent
+        defaultLayout $ do
+          setTitle (toHtml title)
+          $(widgetFile "counterexample")
+      Nothing -> defaultLayout $ do
         setTitle (toHtml title)
         $(widgetFile "counterexample")
 
@@ -109,7 +166,7 @@ data ParsedObject =
   ParsedObject
     { poArgument :: Argument
     , poTag :: MatrixTag
-    , poMMValuation :: Maybe MysteryValuation
+    , poMMValuation :: Maybe MysteryMatrixValuation
     }
 
 maybeResult :: Result a -> Maybe a
@@ -126,11 +183,13 @@ processPost obj = do
     else do
       valObj <- maybeResult $ (parse (.: "incValuation") obj :: Result Object)
       let mystval = case matTag of
-                      ClassicalTag  -> MysteryValuation (objToValuation valObj :: Valuation ClassicalMatrix)
-                      K3Tag -> MysteryValuation (objToValuation valObj :: Valuation K3Matrix)
-                      LPTag -> MysteryValuation (objToValuation valObj :: Valuation LPMatrix)
-                      FDETag -> MysteryValuation (objToValuation valObj :: Valuation FDEMatrix)
+                      ClassicalTag  -> MClassical (objToValuation valObj)
+                      K3Tag -> MK3 (objToValuation valObj)
+                      LPTag -> MLP (objToValuation valObj)
+                      FDETag -> MFDE (objToValuation valObj)
       return $ ParsedObject arg matTag (Just mystval)
+
+
 
 prepareResponse :: Key Exercise -> ParsedObject -> (Value, Attempt)
 prepareResponse exid (ParsedObject arg matTag Nothing) = (responseObj, att)
@@ -143,11 +202,11 @@ prepareResponse exid (ParsedObject arg matTag Nothing) = (responseObj, att)
                         , "report" .= toJSON ValidCorrect
                         ]
                )
-             HasCounterexampleMV (MysteryValuation val) ->
+             HasCounterexampleMV mcex ->
                ( False
                , object [ "rval" .= toJSON (Nothing :: Maybe Void)
                         , "report" .= toJSON ValidIncorrect
-                        , "cex" .= toJSON (displayValuationHtml val)
+                        , "cex" .= toJSON (displayMMVHtml mcex)
                         ]
                )
     justTextify = Just . toStrict . encodeToLazyText
@@ -158,25 +217,25 @@ prepareResponse exid (ParsedObject arg matTag Nothing) = (responseObj, att)
                       justTextify $ object [ "response" .= toJSON ("Valid" :: Text)]
                   , attemptSubmittedAt = Nothing
                   }
-prepareResponse exid (ParsedObject arg matTag (Just mystVal@(MysteryValuation actualVal))) = (responseObj, att)
+prepareResponse exid (ParsedObject arg matTag (Just mystVal)) = (responseObj, att)
   where
     (corr, responseObj) =
       case isCexMV mystVal arg of
             Nothing ->
               ( False
-              , object [ "rval" .=  toJSON actualVal
+              , object [ "rval" .=  toJSON mystVal
                        , "report" .= toJSON CounterexampleIncomplete
                        ]
               )
             Just Counterexamples ->
               ( True
-              , object [ "rval" .= toJSON actualVal
+              , object [ "rval" .= toJSON mystVal
                        , "report" .= toJSON CounterexampleCorrect
                        ]
               )
             Just (UPsAndDCs ups mdc) ->
               ( False
-              , object [ "rval" .= toJSON actualVal
+              , object [ "rval" .= toJSON mystVal
                        , "report" .= toJSON CounterexampleIncorrect
                        , "ups" .= toJSON (displayUPsHTML ups)
                        , "dc"  .= toJSON (displayDCHTML mdc)
@@ -187,7 +246,7 @@ prepareResponse exid (ParsedObject arg matTag (Just mystVal@(MysteryValuation ac
                   , attemptExerciseId = exid
                   , attemptIsCorrect = corr
                   , attemptSubmittedResponse =
-                      justTextify $ object [ "response" .= toJSON (HasCounterexample actualVal) ]
+                      justTextify $ object [ "response" .= toJSON (HasCounterexampleMV mystVal) ]
                   , attemptSubmittedAt = Nothing
                   }
 

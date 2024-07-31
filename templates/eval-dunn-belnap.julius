@@ -31,9 +31,8 @@ $(function() {
       type: 'POST',
       contentType: "application/json",
       data: JSON.stringify({
-        iebFormula: #{toJSON formula},
-        iebValuation: #{toJSON dbval},
-        iebResponse: #{toJSON DunnBelnapT}
+        iedbExerciseId: #{toJSON exid},
+        iedbResponse: #{toJSON DunnBelnapT}
       }),
       success: reportAnswer,
       error: logError
@@ -46,9 +45,8 @@ $(function() {
       type: 'POST',
       contentType: "application/json",
       data: JSON.stringify({
-        iebFormula: #{toJSON formula},
-        iebValuation: #{toJSON dbval},
-        iebResponse: #{toJSON DunnBelnapF}
+        iedbExerciseId: #{toJSON exid},
+        iedbResponse: #{toJSON DunnBelnapF}
       }),
       success: reportAnswer,
       error: logError
@@ -61,9 +59,8 @@ $(function() {
       type: 'POST',
       contentType: "application/json",
       data: JSON.stringify({
-        iebFormula: #{toJSON formula},
-        iebValuation: #{toJSON dbval},
-        iebResponse: #{toJSON DunnBelnapB}
+        iedbExerciseId: #{toJSON exid},
+        iedbResponse: #{toJSON DunnBelnapB}
       }),
       success: reportAnswer,
       error: logError
@@ -76,9 +73,8 @@ $(function() {
       type: 'POST',
       contentType: "application/json",
       data: JSON.stringify({
-        iebFormula: #{toJSON formula},
-        iebValuation: #{toJSON dbval},
-        iebResponse: #{toJSON DunnBelnapN}
+        iedbExerciseId: #{toJSON exid},
+        iedbResponse: #{toJSON DunnBelnapN}
       }),
       success: reportAnswer,
       error: logError

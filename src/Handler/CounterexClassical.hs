@@ -64,6 +64,7 @@ getCounterexClassicalR =
   getCounterexample
     setts
     [matrixCL]
+    CounterexampleClassical
     "Classical counterexamples"
     "Finding classical counterexamples"
     ""
@@ -76,7 +77,7 @@ postCounterexClassicalR = do
       Error s -> returnJson s -- Did we get a parseable response?
       Success requestJson -> case requestJson of
         Object hm -> -- is the response an Object?
-          case parseMaybe id (hm .: "exerciseId") of
+          case parseMaybe id (hm .: "incExerciseId") of
             Nothing -> returnJson ("No exercise id!" :: Text)
             Just exid ->
               case prepareResponse exid <$> processPost hm of

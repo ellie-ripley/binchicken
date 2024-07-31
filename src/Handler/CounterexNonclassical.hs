@@ -42,6 +42,7 @@ getCounterexNonclassicalR =
   getCounterexample
     setts
     [matrixK3, matrixLP, matrixFDE]
+    CounterexampleNonclassical
     "Nonclassical counterexamples"
     "Finding nonclassical counterexamples"
     "Note that the matrix can change from one argument to the next, so stay alert!"

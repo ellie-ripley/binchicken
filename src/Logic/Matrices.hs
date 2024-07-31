@@ -11,7 +11,7 @@
 
 module Logic.Matrices where
 
-import Data.Aeson (ToJSON, FromJSON)
+import Data.Aeson (ToJSON(..), FromJSON(..))
 import qualified Data.Map as Map
 import Data.Maybe (isNothing)
 import Data.Text (Text, intercalate)
@@ -198,21 +198,50 @@ matrixLP = MatrixInfo [minBound..maxBound :: LPMatrix] LPTag
 matrixFDE :: MatrixInfo
 matrixFDE = MatrixInfo [minBound..maxBound :: FDEMatrix] FDETag
 
-data MysteryValuation =
-  forall v . (ValMatrix v, ValDisplay v, ToJSON v) => MysteryValuation (Valuation v)
+data MysteryMatrixValuation =
+    MClassical (Valuation ClassicalMatrix)
+  | MK3 (Valuation K3Matrix)
+  | MLP (Valuation LPMatrix)
+  | MFDE (Valuation FDEMatrix)
+  deriving (Generic)
 
-isCexMV :: MysteryValuation -> Argument -> Maybe IsCounterexample
-isCexMV (MysteryValuation mv) = isCex mv
+instance ToJSON MysteryMatrixValuation
+instance FromJSON MysteryMatrixValuation
 
-data IsValidMV = ValidMV | HasCounterexampleMV MysteryValuation
+displayMMVHtml :: MysteryMatrixValuation -> Text
+displayMMVHtml _ = "Valuation goes here!"
 
-mystify :: (ValDisplay m, ValMatrix m, ToJSON m) => IsValid m -> IsValidMV
-mystify Valid = ValidMV
-mystify (HasCounterexample cex) = HasCounterexampleMV (MysteryValuation cex)
+isCexMV :: MysteryMatrixValuation -> Argument -> Maybe IsCounterexample
+isCexMV (MClassical cv) = isCex cv
+isCexMV (MK3 kv)        = isCex kv
+isCexMV (MLP lpv)       = isCex lpv
+isCexMV (MFDE fdev)     = isCex fdev
+
+data IsValidMV = ValidMV | HasCounterexampleMV MysteryMatrixValuation
+  deriving (Generic)
+
+instance ToJSON IsValidMV
+instance FromJSON IsValidMV
+
+mystifyC :: IsValid ClassicalMatrix -> IsValidMV
+mystifyC Valid = ValidMV
+mystifyC (HasCounterexample cc) = HasCounterexampleMV (MClassical cc)
+
+mystifyK3 :: IsValid K3Matrix -> IsValidMV
+mystifyK3 Valid = ValidMV
+mystifyK3 (HasCounterexample ck) = HasCounterexampleMV (MK3 ck)
+
+mystifyLP :: IsValid LPMatrix -> IsValidMV
+mystifyLP Valid = ValidMV
+mystifyLP (HasCounterexample cl) = HasCounterexampleMV (MLP cl)
+
+mystifyFDE :: IsValid FDEMatrix -> IsValidMV
+mystifyFDE Valid = ValidMV
+mystifyFDE (HasCounterexample cf) = HasCounterexampleMV (MFDE cf)
 
 isValidMV :: MatrixTag -> Argument -> IsValidMV
 isValidMV mtag arg = case mtag of
-  ClassicalTag -> mystify (isValid arg :: IsValid ClassicalMatrix)
-  K3Tag        -> mystify (isValid arg :: IsValid K3Matrix)
-  LPTag        -> mystify (isValid arg :: IsValid LPMatrix)
-  FDETag       -> mystify (isValid arg :: IsValid FDEMatrix)
+  ClassicalTag -> mystifyC (isValid arg)
+  K3Tag        -> mystifyK3 (isValid arg)
+  LPTag        -> mystifyLP (isValid arg)
+  FDETag       -> mystifyFDE (isValid arg)

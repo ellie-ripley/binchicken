@@ -21,6 +21,7 @@ import Import.NoFoundation
       Key,
       Maybe(..),
       FromJSON,
+      SentExercise(..),
       Value,
       ToJSON(toJSON),
       Text,
@@ -29,6 +30,7 @@ import Import.NoFoundation
       error,
       fromMaybe,
       getEntity,
+      insert,
       map,
       pack,
       insertEntity,
@@ -36,6 +38,7 @@ import Import.NoFoundation
       parseCheckJsonBody,
       returnJson,
       setTitle,
+      toStrict,
       (.),
       Html,
       Yesod(defaultLayout),
@@ -45,10 +48,11 @@ import Import.NoFoundation
       YesodAuth(maybeAuthId),
       Bounded(..) )
 import Text.Julius (RawJS (..))
-import Data.Aeson (Result(..), (.=), object, decodeStrict)
-import Data.Text.Encoding (encodeUtf8)
+import Data.Aeson (Result(..), (.=), object, decodeStrict, encode)
+import Data.Text.Encoding (decodeUtf8, encodeUtf8)
 import qualified Data.Map.Strict as Map
 
+import Handler.Common (updateScore)
 import Handler.LoginCheck (loginNotifyW)
 import Logic.Formulas
   ( Formula,
@@ -58,6 +62,7 @@ import Logic.Formulas
     displayFormula,
     atomsIn )
 import Logic.Random (randomFormulaIO, randomValuationSelectAtomicsIO)
+import Scoring (boolToCorrect)
 import Settings.Binchicken (RandomFormulaSettings(..), defaultRandomFormulaSettings)
 import Logic.Valuations (StrongKleeneStructure(..), Valuation, ValDisplay(..), eval)
 
@@ -72,6 +77,16 @@ instance FromJSON IESKAttempt
 setts :: RandomFormulaSettings
 setts = defaultRandomFormulaSettings EvaluateStrongKleene
 
+
+decodeESK :: Text -> Maybe (Formula, Valuation StrongKleeneStructure)
+decodeESK bs = decodeStrict $ encodeUtf8 bs
+
+encodeESK
+  :: Formula
+  -> Valuation StrongKleeneStructure
+  -> Text
+encodeESK fm vsk = decodeUtf8 . toStrict $ encode (fm, vsk)
+
 getEvalStrongKleeneR :: Handler Html
 getEvalStrongKleeneR = do
     let buttonList = buttons
@@ -82,12 +97,27 @@ getEvalStrongKleeneR = do
     (formula :: Formula) <- liftIO $ randomFormulaIO setts
     let ats = atomsIn formula
     (skval :: Valuation StrongKleeneStructure) <- liftIO $ randomValuationSelectAtomicsIO ats
-    defaultLayout $ do
+    let ex = Exercise { exerciseExerciseType = EvaluateStrongKleene
+                      , exerciseExerciseContent = encodeESK formula skval
+                      }
+    exid <- runDB $ insert ex
+    maybeCurrentUserId <- maybeAuthId
+    case maybeCurrentUserId of
+      Just uid -> do
+        now <- liftIO getCurrentTime
+        let sent = SentExercise { sentExerciseUserId = Just uid
+                                , sentExerciseExerciseId = exid
+                                , sentExerciseSentAt = Just now
+                                }
+        _ <- runDB $ insert sent
+        defaultLayout $ do
+            setTitle "Evaluate in the Strong Kleene structure"
+            $(widgetFile "eval-strong-kleene")
+      Nothing -> defaultLayout $ do
         setTitle "Evaluate in the strong Kleene structure"
         $(widgetFile "eval-strong-kleene")
 
-decodeESK :: Text -> Maybe (Formula, Valuation StrongKleeneStructure)
-decodeESK bs = decodeStrict $ encodeUtf8 bs
+
 
 postEvalStrongKleeneR :: Handler Value
 postEvalStrongKleeneR = do
@@ -108,15 +138,16 @@ postEvalStrongKleeneR = do
                                   , attemptSubmittedResponse = Just . pack $ show rsp
                                   , attemptSubmittedAt = Nothing
                                   }
-                responseObj = object [ "rexercise" .= (show $ ieskExerciseId ieskAttempt)
-                                    , "rval" .= (displayVal $ ieskResponse ieskAttempt)
-                                    ]
+                responseObj = object [ "rformula" .= (displayFormula fmla)
+                                     , "rval" .= (displayVal $ ieskResponse ieskAttempt)
+                                     ]
             maybeCurrentUserId <- maybeAuthId
             case maybeCurrentUserId of
                 Just uid -> do
                     now <- liftIO getCurrentTime
                     let attempt' = attempt { attemptUserId = Just uid, attemptSubmittedAt = Just now }
                     insertedAttempt <- runDB $ insertEntity attempt'
+                    updateScore uid EvaluateStrongKleene (boolToCorrect corr)
                     returnJson (insertedAttempt, responseObj)
                 Nothing -> returnJson (attempt, responseObj)
 

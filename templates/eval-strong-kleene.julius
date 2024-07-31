@@ -31,9 +31,8 @@ $(function() {
       type: 'POST',
       contentType: "application/json",
       data: JSON.stringify({
-        iebFormula: #{toJSON formula},
-        iebValuation: #{toJSON skval},
-        iebResponse: #{toJSON StrongKleeneT}
+        ieskExerciseId: #{toJSON exid},
+        ieskResponse: #{toJSON StrongKleeneT}
       }),
       success: reportAnswer,
       error: logError
@@ -46,9 +45,8 @@ $(function() {
       type: 'POST',
       contentType: "application/json",
       data: JSON.stringify({
-        iebFormula: #{toJSON formula},
-        iebValuation: #{toJSON skval},
-        iebResponse: #{toJSON StrongKleeneF}
+        ieskExerciseId: #{toJSON exid},
+        ieskResponse: #{toJSON StrongKleeneF}
       }),
       success: reportAnswer,
       error: logError
@@ -61,9 +59,8 @@ $(function() {
       type: 'POST',
       contentType: "application/json",
       data: JSON.stringify({
-        iebFormula: #{toJSON formula},
-        iebValuation: #{toJSON skval},
-        iebResponse: #{toJSON StrongKleeneStar}
+        ieskExerciseId: #{toJSON exid},
+        ieskResponse: #{toJSON StrongKleeneStar}
       }),
       success: reportAnswer,
       error: logError

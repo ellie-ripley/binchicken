@@ -31,8 +31,7 @@ $(function() {
       type: 'POST',
       contentType: "application/json",
       data: JSON.stringify({
-        iebFormula: #{toJSON formula},
-        iebValuation: #{toJSON bval},
+        iebExerciseId: #{toJSON exid},
         iebResponse: #{toJSON BoolT}
       }),
       success: reportAnswer,
@@ -46,8 +45,7 @@ $(function() {
       type: 'POST',
       contentType: "application/json",
       data: JSON.stringify({
-        iebFormula: #{toJSON formula},
-        iebValuation: #{toJSON bval},
+        iebExerciseId: #{toJSON exid},
         iebResponse: #{toJSON BoolF}
       }),
       success: reportAnswer,

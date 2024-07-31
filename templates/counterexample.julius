@@ -56,10 +56,9 @@ $(function() {
       type: 'POST',
       contentType: "application/json",
       data: JSON.stringify({
-        incArgument: #{toJSON arg},
-        incMatrix: #{toJSON mtag},
-        incHasValuation: #{toJSON True},
-        incValuation: enteredValuation()
+        icexExerciseId: #{toJSON exid},
+        icexHasValuation: #{toJSON True},
+        icexValuation: enteredValuation()
       }),
       success: reportAnswer,
       error: logError
@@ -72,9 +71,8 @@ $(function() {
       type: 'POST',
       contentType: "application/json",
       data: JSON.stringify({
-        incArgument: #{toJSON arg},
-        incMatrix: #{toJSON mtag},
-        incHasValuation: #{toJSON False}
+        icexExerciseId: #{toJSON exid},
+        icexHasValuation: #{toJSON False}
       }),
       success: reportAnswer,
       error: logError
