@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Scoring where
 
@@ -7,15 +8,22 @@ import Import.NoFoundation
   ( (+)
   , (.)
   , ($)
+  , (==)
+  , (<>)
   , (<*>)
   , (<$>)
+  , divMod
+  , error
   , fmap
   , foldl'
   , foldr
+  , fromIntegral
   , fst
   , map
   , max
   , otherwise
+  , pack
+  , show
   , Attempt(..)
   , Bool(..)
   , Entity(..)
@@ -32,6 +40,7 @@ import Import.NoFoundation
   , User(..)
   )
 
+import Data.Ratio (Rational, (%), denominator, numerator)
 import Data.Map (Map)
 import qualified Data.Map                  as M
 import Data.Text (Text)
@@ -149,14 +158,21 @@ tally usrs ((Entity _ sc):xs) =
 
 calcPoints :: ExerciseTargets -> Progress -> Int
 calcPoints (ExerciseTargets tot1 tot2 str) (Progress _ bes tot)
-  | bes >= str  = 4
-  | tot >= tot2 = 3
-  | tot >= tot1 = 2
-  | tot >= 1    = 1
+  | bes >= str  = 3
+  | tot >= tot2 = 2
+  | tot >= tot1 = 1
   | otherwise   = 0
 
 pointsEarned :: ExerciseType -> Progress -> Int
 pointsEarned = calcPoints . targets
+
+-- | Adds a purely visual "1/3"
+displayPointsEarned :: ExerciseType -> Progress -> Text
+displayPointsEarned et p =
+  let pe = pointsEarned et p
+  in  if pe == 0
+      then "0"
+      else (pack $ show pe) <> ".33"
 
 calculateResults :: Results Progress -> Results Int
 calculateResults = Results . M.mapWithKey pointsEarned . unResults
@@ -170,7 +186,21 @@ calculateSummary = Summary . fmap calculateSummaryRow . unSummary
 exScore :: SummaryRow Int -> ExerciseType -> Maybe Int
 exScore (SummaryRow _ _ res) et = M.lookup et (unResults res)
 
-totalPoints :: SummaryRow Int -> Int
+-- | totals points---every point is worth 1,
+-- | plus every exercise type on which some point is scored is worth 1/3
+totalPoints :: SummaryRow Int -> Rational
 totalPoints sr = foldr adder 0 (unResults $ srResults sr)
   where
-    adder i = (i +)
+    adder 0 a = a
+    adder n a = a + (fromIntegral n) + (1 % 3)
+
+displayPoints :: Rational -> Text
+displayPoints r
+  | denominator r == 3 =
+      let (x, y) = (numerator r) `divMod` 3
+      in  case y of
+            0 -> pack $ show x
+            1 -> (pack $ show x) <> ".33"
+            2 -> (pack $ show x) <> ".67"
+            _ -> error "MATH IS BROKEN"
+  | otherwise = "There's been a problem in the scoring; please report this error!"

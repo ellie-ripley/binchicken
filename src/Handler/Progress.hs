@@ -19,6 +19,7 @@ import Foundation
 import Import.NoFoundation
     ( otherwise,
       ($),
+      (.),
       fromIntegral,
       Enum(fromEnum),
       Fractional((/)),
@@ -55,6 +56,8 @@ import Scoring
   , Summary(..)
   , SummaryRow(..)
   , calculateSummaryRow
+  , displayPoints
+  , displayPointsEarned
   , pointsEarned
   , tally
   , totalPoints
@@ -76,6 +79,7 @@ getProgressR = do
                 sr  = case M.lookup uid (unSummary tal) of
                           Just succ -> succ
                           Nothing   -> error "Error 2323!"
+                tpoin = displayPoints . totalPoints $ calculateSummaryRow sr
             defaultLayout $ do
                 setTitle "Progress"
                 $(widgetFile "progress")
