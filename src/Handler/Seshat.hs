@@ -5,11 +5,7 @@
 module Handler.Seshat where
 
 import Foundation ( Handler )
-import Import.NoFoundation ( Attempt(..)
-                           , Entity(..)
-                           , EntityField(..)
-                           , Exercise(..)
-                           , Html
+import Import.NoFoundation ( Html
                            , Key(..)
                            , Score(..)
                            , User(..)
@@ -19,7 +15,7 @@ import Import.NoFoundation ( Attempt(..)
                            , setTitle
                            , widgetFile
                            )
-import Database.Esqueleto
+import Database.Esqueleto.Legacy
 
 import qualified Data.Map as M
 

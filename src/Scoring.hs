@@ -10,25 +10,19 @@ import Import.NoFoundation
   , ($)
   , (==)
   , (<>)
-  , (<*>)
-  , (<$>)
   , divMod
   , error
   , fmap
-  , foldl'
   , foldr
   , fromIntegral
   , fst
   , map
-  , max
   , otherwise
   , pack
   , show
-  , Attempt(..)
   , Bool(..)
   , Entity(..)
   , Eq
-  , Exercise(..)
   , Functor
   , Int
   , Key(..)

@@ -30,6 +30,7 @@ import Logic.Valuations
       Valuation,
       ValDisplay(..),
       ValStructure(..),
+      displayValuationHtml,
       eval )
 
 
@@ -209,7 +210,11 @@ instance ToJSON MysteryMatrixValuation
 instance FromJSON MysteryMatrixValuation
 
 displayMMVHtml :: MysteryMatrixValuation -> Text
-displayMMVHtml _ = "Valuation goes here!"
+displayMMVHtml (MClassical v) = displayValuationHtml v
+displayMMVHtml (MK3 v) = displayValuationHtml v
+displayMMVHtml (MLP v) = displayValuationHtml v
+displayMMVHtml (MFDE v) = displayValuationHtml v
+
 
 isCexMV :: MysteryMatrixValuation -> Argument -> Maybe IsCounterexample
 isCexMV (MClassical cv) = isCex cv

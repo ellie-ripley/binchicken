@@ -11,7 +11,7 @@
         <p>There are no exercise types! (This is a bug in the site!)
     $else
         <div .ex-overall>
-            <p>Total: #{tpoin} / 40 available points earned
+            <p>Total: #{tpoin} / 40 points earned
         <div .ex-progress-list>
             $forall et <- exTypes
               $with targs <- targets et

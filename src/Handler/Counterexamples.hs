@@ -64,19 +64,14 @@ import Handler.LoginCheck (loginNotifyW)
 import Logic.Formulas (Atomic(..), displayAtomic, displayFormula)
 import Logic.Random (randomArgumentIO)
 import Settings.Binchicken (RandomArgumentSettings(..))
-import Logic.Valuations (Valuation, ValDisplay(..), displayVal, displayValuationHtml, objToValuation)
+import Logic.Valuations (ValDisplay(..), displayVal, objToValuation)
 import Logic.Arguments (Argument(..), atomsInArg)
 import Logic.Matrices
   ( IsCounterexample(..),
-    IsValid(..),
     displayMMVHtml,
     displayUPsHTML,
     displayDCHTML,
     MatrixInfo(..),
-    ClassicalMatrix,
-    K3Matrix,
-    LPMatrix,
-    FDEMatrix,
     MysteryMatrixValuation(..),
     MatrixTag(..),
     isValidMV,
@@ -173,11 +168,11 @@ maybeResult :: Result a -> Maybe a
 maybeResult (Error _)   = Nothing
 maybeResult (Success s) = Just s
 
-processPost :: Object -> Maybe ParsedObject
-processPost obj = do
+processPost' :: Object -> Maybe ParsedObject
+processPost' obj = do
   arg <- maybeResult $ parse (.: "incArgument") obj
-  hasVal <- maybeResult $ parse (.: "incHasValuation") obj
   matTag <- maybeResult $ parse (.: "incMatrix") obj
+  hasVal <- maybeResult $ parse (.: "icexHasValuation") obj
   if not hasVal
     then return $ ParsedObject arg matTag Nothing
     else do
@@ -188,6 +183,27 @@ processPost obj = do
                       LPTag -> MLP (objToValuation valObj)
                       FDETag -> MFDE (objToValuation valObj)
       return $ ParsedObject arg matTag (Just mystval)
+
+-- | Given a response Object and an Exercise, attempt to digest them into a ParsedObject
+processExercise
+  :: Object
+  -> Exercise
+  -> Result ParsedObject
+processExercise obj ex = do
+  hasVal <- parse (.: "icexHasValuation") obj
+  case decodeCex $ exerciseExerciseContent ex of
+    Nothing -> Error "Couldn't read exercise content!"
+    Just (arg, mtag) ->
+      if not hasVal
+      then Success $ ParsedObject arg mtag Nothing
+      else do
+        valObj <- (parse (.: "icexValuation") obj :: Result Object)
+        let mystval = case mtag of
+              ClassicalTag -> MClassical (objToValuation valObj)
+              K3Tag        -> MK3 (objToValuation valObj)
+              LPTag        -> MLP (objToValuation valObj)
+              FDETag       -> MFDE (objToValuation valObj)
+        Success $ ParsedObject arg mtag (Just mystval)
 
 
 
@@ -217,7 +233,7 @@ prepareResponse exid (ParsedObject arg matTag Nothing) = (responseObj, att)
                       justTextify $ object [ "response" .= toJSON ("Valid" :: Text)]
                   , attemptSubmittedAt = Nothing
                   }
-prepareResponse exid (ParsedObject arg matTag (Just mystVal)) = (responseObj, att)
+prepareResponse exid (ParsedObject arg _ (Just mystVal)) = (responseObj, att)
   where
     (corr, responseObj) =
       case isCexMV mystVal arg of

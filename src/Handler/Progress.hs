@@ -23,7 +23,6 @@ import Import.NoFoundation
       fromIntegral,
       Enum(fromEnum),
       Fractional((/)),
-      Monad(return),
       Num((*)),
       Ord(..),
       Show(show),
@@ -33,14 +32,12 @@ import Import.NoFoundation
       Maybe(Just, Nothing),
       Text,
       error,
-      getEntity,
       null,
       pack,
       redirect,
       selectList,
       setTitle,
       Html,
-      EntityField(..),
       Yesod(defaultLayout),
       YesodPersist(..),
       widgetFile,
@@ -48,7 +45,7 @@ import Import.NoFoundation
       YesodAuth(maybeAuthId) )
 import GHC.Float.RealFracMethods (roundDoubleInt)
 import qualified Data.Map as M
-import Database.Esqueleto
+import Database.Esqueleto.Legacy
 
 import Scoring
   ( Progress(..)
