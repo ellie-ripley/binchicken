@@ -33,7 +33,7 @@
                               <h6>Level 1:
                               <p .progress-amount>#{totalMilestone1 $ targs} correct
                               <img .progress-badge :points >= 1:.complete src=@{StaticR img_ibis_icon_png}>
-                              $if points >= 2
+                              $if points >= 1
                                   <p>Got it!
                               $else
                                   <p>Not yet!
@@ -41,7 +41,7 @@
                               <h6>Level 2:
                               <p .progress-amount>#{totalMilestone2 $ targs} correct
                               <img .progress-badge :points >= 2:.complete src=@{StaticR img_ibis_icon_png}>
-                              $if points >= 3
+                              $if points >= 2
                                   <p>Got it!
                               $else
                                   <p>Not yet!
@@ -49,7 +49,7 @@
                               <h6>Level 3:
                               <p .progress-amount>streak of #{streakMilestone1 $ targs}
                               <img .progress-badge :points >= 3:.complete src=@{StaticR img_ibis_icon_png}>
-                              $if points >= 4
+                              $if points >= 3
                                   <p>Got it!
                               $else
                                   <p>Not yet!
