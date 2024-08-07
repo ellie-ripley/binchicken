@@ -190,6 +190,7 @@ totalPoints sr = foldr adder 0 (unResults $ srResults sr)
 
 displayPoints :: Rational -> Text
 displayPoints r
+  | denominator r == 1 = pack . show $ numerator r
   | denominator r == 3 =
       let (x, y) = (numerator r) `divMod` 3
       in  case y of
