@@ -370,7 +370,7 @@ class DeductionRoot extends DeductionNode {
 class ProofRoot extends DeductionRoot {
     renderOn(target) {
         var elt = super.renderOn(target)
-        elt.input.setAttribute("readonly","readonly")
+        //elt.input.setAttribute("readonly","readonly")
     }
 
     addParent () { alert("Can't add a parent to a read-only root node") }
