@@ -28,3 +28,4 @@
 
 -- Other pages
 /seshat SeshatR GET
+/proof-playground ProofPlaygroundR GET POST
