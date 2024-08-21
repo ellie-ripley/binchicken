@@ -75,7 +75,19 @@ $(function() {
       error: logError
     });
   });
-  $("##{rawJS buttonChangeConclusionId}").click(function() {
-    root1["label"] = document.getElementById("#{rawJS newConclusionId}").value;
+  $("##{rawJS negButt}").click(function() {
+    navigator.clipboard.writeText("¬");
+  });
+  $("##{rawJS conjButt}").click(function() {
+    navigator.clipboard.writeText("∧");
+  });
+  $("##{rawJS disjButt}").click(function() {
+    navigator.clipboard.writeText("∨");
+  });
+  $("##{rawJS implButt}").click(function() {
+    navigator.clipboard.writeText("→");
+  });
+  $("##{rawJS fumButt}").click(function() {
+    navigator.clipboard.writeText("⊥");
   });
 });

@@ -32,9 +32,10 @@ import GHC.Generics (Generic)
 import Text.Julius (rawJS)
 
 import Logic.PreProofs
-    ( Rule(RT, RU),
-      TrinaryRule(DE),
-      UnaryRule(II, NI),
+    ( Rule(..),
+      TrinaryRule(..),
+      UnaryRule(..),
+      BinaryRule(..),
       RawProofTree,
       ruleName,
       displayPPPError,
@@ -45,7 +46,9 @@ import Logic.PreProofs
 import Handler.Proofs (singleProofEntry)
 import Logic.Formulas ( displayFormula
                       )
-import Logic.Proofs ( maxSegments
+import Logic.Proofs ( checkProof
+                    , displayProofStatus
+                    , maxSegments
                     , renderMaxSegments
                     , removeCompoundFEs
                     )
@@ -58,8 +61,9 @@ data PPData = PPData { submittedProofTree :: RawProofTree }
 
 getProofPlaygroundR :: Handler Html
 getProofPlaygroundR = do
-  let (buttonDivId, buttonSubmitId, buttonChangeConclusionId) = buttonIds
-      (proofIdPrefix, feedbackId, newConclusionId) = otherIds
+  let (buttonDivId, buttonSubmitId) = buttonIds
+      (proofIdPrefix, feedbackId) = otherIds
+      (negButt, conjButt, disjButt, implButt, fumButt) = connButtonIds
       proofId = proofIdPrefix <> "1"
       secondProofId = proofIdPrefix <> "2"
       ajaxRoute = ProofPlaygroundR
@@ -81,18 +85,21 @@ postProofPlaygroundR = do
             case tryOrigPreProof of
               Left err -> object [ "feedback" .= toJSON ("Error in original proof: " <> displayPPPError err) ]
               Right prf ->
-                let mSegs = maxSegments prf
-                    maxFeed = renderMaxSegments mSegs
-                    concFeed = "The conclusion is " <> displayFormula (ppConclusion prf)
-                    fb = unpack concFeed <> maxFeed
+                let statFeed = displayProofStatus $ checkProof prf
+                    maxFeed = renderMaxSegments $ maxSegments prf
+                    concFeed = "<p>The conclusion is " <> displayFormula (ppConclusion prf) <> "</p>"
+                    fb = statFeed <> (unpack concFeed) <> maxFeed
                     returnPrf = removeCompoundFEs prf
                 in object [ "feedback" .= toJSON fb
                           , "newproof" .= toJSON (makeRaw returnPrf)
                           ]
       returnJson responseObj
 
-buttonIds :: (Text, Text, Text)
-buttonIds = ("js-button-div", "js-submit-button", "js-change-conclusion-button")
+buttonIds :: (Text, Text)
+buttonIds = ("js-button-div", "js-submit-button")
 
-otherIds :: (Text, Text, Text)
-otherIds = ("js-proof-id", "js-feedback-id", "js-new-conclusion-id")
+connButtonIds :: (Text, Text, Text, Text, Text)
+connButtonIds = ("js-neg-button", "js-conj-button", "js-disj-button", "js-impl-button", "js-fum-button")
+
+otherIds :: (Text, Text)
+otherIds = ("js-proof-id", "js-feedback-id")

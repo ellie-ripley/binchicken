@@ -21,6 +21,7 @@ import Logic.Formulas ( Connective(..)
                       , UnaryConnective(..)
                       , BinaryConnective(..)
                       , Formula
+                      , displayConnective
                       , displayFormula
                       )
 import Logic.FormulaParsing.Lexer (alexScanTokens)
@@ -132,56 +133,74 @@ okDischargeLabel tx =
     Just _  -> False
     Nothing -> True
 
+-- | Takes as input a candidate discharge label, assumes the rule is ¬I, returns appropriately
+readRuleNegAux :: Text -> Either RuleError Rule
+readRuleNegAux dm
+  | T.null dm           = Left  $ MissingDischarge (RU $ NI "")
+  | okDischargeLabel dm = Right $ RU (NI dm)
+  | otherwise           = Left  $ BadDischarge (RU $ NI dm) dm
+
+-- | Takes as input a candidate discharge label, assumes the rule is →I, returns appropriately
+readRuleImplAux :: Text -> Either RuleError Rule
+readRuleImplAux dm
+  | T.null dm           = Left  $ MissingDischarge (RU $ II "")
+  | okDischargeLabel dm = Right $ RU (II dm)
+  | otherwise           = Left  $ BadDischarge (RU $ II dm) dm
+
+-- | Takes as input a candidate discharge label, assumes the rule is ∨E, returns appropriately
+readRuleDisjAux :: Text -> Either RuleError Rule
+readRuleDisjAux dm
+  | T.null dm           = Left  $ MissingDischarge (RT $ DE "")
+  | okDischargeLabel dm = Right $ RT (DE dm)
+  | otherwise           = Left  $ BadDischarge (RT $ DE dm) dm
+
 readRule :: Text -> Either RuleError Rule
 readRule tx =
   case cleanText of
     "/\\I"  -> Right $ RB CI
+    "∧I"    -> Right $ RB CI
     "/\\EL" -> Right $ RU CEL
+    "∧EL"   -> Right $ RU CEL
     "/\\ER" -> Right $ RU CER
+    "∧ER"   -> Right $ RU CER
     "\\/IL" -> Right $ RU DIL
+    "∨IL"   -> Right $ RU DIL
     "\\/IR" -> Right $ RU DIR
+    "∨IR"   -> Right $ RU DIR
     "->E"   -> Right $ RB IE
+    "→E"    -> Right $ RB IE
     "_|_E"  -> Right $ RU FE
+    "⊥E"    -> Right $ RU FE
     "~E"    -> Right $ RB NE
+    "¬E"    -> Right $ RB NE
     _       -> case T.splitAt 3 cleanText of
-                  ("\\/E", dm) ->
-                      if T.null dm
-                        then Left $ MissingDischarge (RT $ DE "")
-                      else if okDischargeLabel dm
-                        then Right $ RT (DE dm)
-                      else Left $ BadDischarge (RT $ DE dm) dm
-                  ("->I" , dm) ->
-                      if T.null dm
-                        then Left $ MissingDischarge (RU $ II "")
-                      else if okDischargeLabel dm
-                        then Right $ RU (II dm)
-                      else Left $ BadDischarge (RU $ II dm) dm
+                  ("\\/E", dm) -> readRuleDisjAux dm
+                  ("->I" , dm) -> readRuleImplAux dm
                   (pre3, rest) ->
                       let (pre2, one) = T.splitAt 2 pre3
                           dm = one <> rest
-                      in if pre2 == "~I"
-                          then if T.null dm
-                                 then Left $ MissingDischarge (RU $ NI "")
-                               else if okDischargeLabel dm
-                                 then Right $ RU (NI dm)
-                               else Left $ BadDischarge (RU $ NI dm) dm
-                         else Left $ BadRule tx
+                      in case pre2 of
+                           "~I" -> readRuleNegAux dm
+                           "¬I" -> readRuleNegAux dm
+                           "→I" -> readRuleImplAux dm
+                           "∨E" -> readRuleDisjAux dm
+                           _    -> Left $ BadRule tx
   where
     cleanText = T.filter (/= ' ') . T.toUpper $ tx
 
 ruleName :: Rule -> Text
 ruleName = \case
-  RB CI  -> "/\\I"
-  RU CEL -> "/\\EL"
-  RU CER -> "/\\ER"
-  RU DIL -> "\\/IL"
-  RU DIR -> "\\/IR"
-  RT (DE tx) -> "\\/E" <> tx
-  RU (II tx) -> "->I" <> tx
-  RU (NI tx) -> "~I" <> tx
-  RB IE  -> "->E"
-  RB NE  -> "~E"
-  RU FE  -> "_|_E"
+  RB CI  -> (displayConnective $ CB Conjunction) <> "I"
+  RU CEL -> (displayConnective $ CB Conjunction) <> "EL"
+  RU CER -> (displayConnective $ CB Conjunction) <> "ER"
+  RU DIL -> (displayConnective $ CB Disjunction) <> "IL"
+  RU DIR -> (displayConnective $ CB Disjunction) <> "IR"
+  RT (DE tx) -> (displayConnective $ CB Disjunction) <> "E" <> tx
+  RU (II tx) -> (displayConnective $ CB Implication) <> "I" <> tx
+  RB IE  -> (displayConnective $ CB Implication) <> "E"
+  RU (NI tx) -> (displayConnective $ CU Negation) <> "I" <> tx
+  RB NE  -> (displayConnective $ CU Negation) <> "E"
+  RU FE  -> (displayConnective $ CN Falsum) <> "E"
 
 ruleArity :: Rule -> Int
 ruleArity = \case

@@ -10,10 +10,15 @@ tokens :-
 
   $white+       ;
   \/\\          { \_ -> TokConj }
+  ∧             { \_ -> TokConj }
   \\\/          { \_ -> TokDisj }
+  ∨             { \_ -> TokDisj }
   \->           { \_ -> TokImpl }
+  →             { \_ -> TokImpl }
   \~            { \_ -> TokNeg }
+  ¬             { \_ -> TokNeg }
   _\|_          { \_ -> TokFum }
+  ⊥             { \_ -> TokFum }
   \(            { \_ -> TokLPar }
   \)            { \_ -> TokRPar }
   $atom         { \s -> TokAtom s }
