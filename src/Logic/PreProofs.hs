@@ -96,11 +96,10 @@ makeRaw = \case
       }
   Discharged lb fm ->
     RawProofTree
-      { label = displayFormula fm
-      , rule  = lb
-      , forest = [ RawProofTree
-                   { label = "", rule = "", forest = [] }
-                 ]}
+      { label = "[" <> displayFormula fm <> "]" <> lb
+      , rule  = ""
+      , forest = []
+      }
   UR ur com fm ->
     RawProofTree
       { label = displayFormula fm
@@ -234,19 +233,23 @@ parseFmla tx =
     Left _   -> Nothing
     Right fm -> Just fm
 
+parseLeaf :: Text -> Either PreProofParseError PreProof
+parseLeaf tx =
+  let txs = T.split (\c -> c == '[' || c == ']') tx
+  in case length txs of
+      3 -> let (mfm, mlb) = (txs !! 1, txs !! 2)
+           in case parseFmla mfm of
+                Just fm -> if okDischargeLabel mlb
+                           then Right $ Discharged mlb fm
+                           else Left $ BadDischargeLabel mlb
+                Nothing -> Left $ CantReadFormula mfm
+      1 -> case parseFmla (head txs) of
+             Just fm -> Right $ Open fm
+             Nothing -> Left $ CantReadFormula (head txs)
+      _ -> Left $ CantReadFormula tx
+
 readPreProof :: RawProofTree -> Either PreProofParseError PreProof
-readPreProof (RawProofTree lbl "" []) =
-  case parseFmla lbl of
-    Nothing -> Left  $ CantReadFormula lbl
-    Just fm -> Right $ Open fm
-readPreProof (RawProofTree lbl rl [(RawProofTree "" "" [])]) =
-  case parseFmla lbl of
-    Nothing -> Left $ CantReadFormula lbl
-    Just fm -> case rl of
-                 "" -> Left $ FormulaNoDischargeLabel fm
-                 _  -> case T.find (\c -> not $ c `elem` ['0'..'9']) rl of
-                         Just _  -> Left  $ BadDischargeLabel rl
-                         Nothing -> Right $ Discharged rl fm
+readPreProof (RawProofTree lbl "" []) = parseLeaf lbl
 readPreProof (RawProofTree lbl rl for) =
   case parseFmla lbl of
     Nothing -> Left $ CantReadFormula lbl
