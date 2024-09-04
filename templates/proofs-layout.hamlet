@@ -49,7 +49,7 @@
                             <code>_|_ or ⊥
             <li>For rule labels, use the connective plus <code>I</code> for introductions or <code>E</code> for eliminations. For disjunction introductions and conjunction eliminations, you should add in addition an <code>L</code> or <code>R</code> as appropriate.
             <li>For discharging rules (that's <code>#{ruleName $ RU (II "")}</code>, <code>#{ruleName $ RU (NI "")}</code>, and <code>#{ruleName $ RT (DE "")}</code>), add a numeral to the end of the rule name as a discharge marker. For example, you might use <code>#{ruleName $ RU (II "5")}</code> or <code>#{ruleName $ RT (DE "23")}</code>.
-            <li>To discharge an assumption, make an empty node above it, and put an appropriate discharge numeral (on its own) as the rule label.
+            <li>To discharge an assumption, surround it with <code>[</code> and <code>]</code>, and put the appropriate discharge numeral immediately after that. For example, you might write <code>[p -> q]3</code> to discharge the assumption <code>p -> q</code> with the label <code>3</code>.
             <li>Press <code>Enter</code> to create a new sibling node.
             <li>Press <code>Ctrl-Enter</code> to create a new parent node.
             <li>Press <code>Ctrl-Shift-Enter</code> to create a new child node.

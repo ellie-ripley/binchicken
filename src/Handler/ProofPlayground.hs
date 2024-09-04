@@ -46,7 +46,8 @@ import Logic.PreProofs
 import Handler.Proofs (singleProofEntry)
 import Logic.Formulas ( displayFormula
                       )
-import Logic.Proofs ( checkProof
+import Logic.Proofs ( ProofStatus(..)
+                    , checkProof
                     , displayProofStatus
                     , maxSegments
                     , renderMaxSegments
@@ -85,14 +86,17 @@ postProofPlaygroundR = do
             case tryOrigPreProof of
               Left err -> object [ "feedback" .= toJSON ("Error in original proof: " <> displayPPPError err) ]
               Right prf ->
-                let statFeed = displayProofStatus $ checkProof prf
-                    maxFeed = renderMaxSegments $ maxSegments prf
-                    concFeed = "<p>The conclusion is " <> displayFormula (ppConclusion prf) <> "</p>"
-                    fb = statFeed <> (unpack concFeed) <> maxFeed
-                    returnPrf = removeCompoundFEs prf
-                in object [ "feedback" .= toJSON fb
-                          , "newproof" .= toJSON (makeRaw returnPrf)
-                          ]
+                case checkProof prf of
+                  GoodProof ->
+                    let statFeed = displayProofStatus $ checkProof prf
+                        maxFeed = renderMaxSegments $ maxSegments prf
+                        concFeed = "<p>The conclusion is " <> displayFormula (ppConclusion prf) <> "</p>"
+                        fb = statFeed <> (unpack concFeed) <> maxFeed
+                        returnPrf = removeCompoundFEs prf
+                    in object [ "feedback" .= toJSON fb
+                              , "newproof" .= toJSON (makeRaw returnPrf)
+                              ]
+                  prfErr -> object [ "feedback" .= toJSON ("Error in original proof: " <> displayProofStatus prfErr) ]
       returnJson responseObj
 
 buttonIds :: (Text, Text)

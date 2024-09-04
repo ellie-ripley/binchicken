@@ -286,6 +286,10 @@ mainConnective (N n)     = Just $ CN n
 mainConnective (U u _)   = Just $ CU u
 mainConnective (B b _ _) = Just $ CB b
 
+isAtomic :: Formula -> Bool
+isAtomic (A _) = True
+isAtomic _     = False
+
 atomic :: Char -> Atomic
 atomic = At . T.pack . (:[])
 

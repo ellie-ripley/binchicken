@@ -235,13 +235,17 @@ parseFmla tx =
 
 parseLeaf :: Text -> Either PreProofParseError PreProof
 parseLeaf tx =
+  -- check for discharge by splitting at square brackets; no check for opening/closing match
   let txs = T.split (\c -> c == '[' || c == ']') tx
+  -- if there were two square brackets, there will be three strings
   in case length txs of
       3 -> let (mfm, mlb) = (txs !! 1, txs !! 2)
            in case parseFmla mfm of
-                Just fm -> if okDischargeLabel mlb
-                           then Right $ Discharged mlb fm
-                           else Left $ BadDischargeLabel mlb
+                Just fm ->
+                  let strippedMlb = T.stripStart mlb
+                  in if okDischargeLabel strippedMlb
+                     then Right $ Discharged strippedMlb fm
+                     else Left $ BadDischargeLabel mlb
                 Nothing -> Left $ CantReadFormula mfm
       1 -> case parseFmla (head txs) of
              Just fm -> Right $ Open fm
