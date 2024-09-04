@@ -287,6 +287,7 @@ instance Yesod BinChicken where
     isAuthorized EvalDunnBelnapR _ = return Authorized
     isAuthorized CounterexClassicalR _ = return Authorized
     isAuthorized CounterexNonclassicalR _ = return Authorized
+    isAuthorized ProofRequirementsR _ = return Authorized
 
     -- the profile route requires that the user is authenticated, so we
     -- delegate to that function

@@ -48,6 +48,7 @@ defaultRandomFormulaSettings = \case
   EvaluateDunnBelnap           -> defEvalRandomFormulaSettings
   CounterexampleClassical      -> defRandomFormulaSettings
   CounterexampleNonclassical   -> defRandomFormulaSettings
+  ProofWithRequirements        -> defRandomFormulaSettings
 
 
 data RandomArgumentSettings =
@@ -133,6 +134,7 @@ targets = \case
   EvaluateDunnBelnap           -> ExerciseTargets 15 30 10
   CounterexampleClassical      -> ExerciseTargets 20 40 15
   CounterexampleNonclassical   -> ExerciseTargets 20 40 15
+  ProofWithRequirements        -> ExerciseTargets 6  10 5
 
 fullStreak :: ExerciseType -> Int
 fullStreak = streakMilestone1 . targets
@@ -146,6 +148,7 @@ exerciseRoute = \case
   EvaluateDunnBelnap           -> EvalDunnBelnapR
   CounterexampleClassical      -> CounterexClassicalR
   CounterexampleNonclassical   -> CounterexNonclassicalR
+  ProofWithRequirements        -> ProofRequirementsR
 
 -- | List of exercise types in actual use
 activeExerciseTypes :: [ExerciseType]
@@ -156,4 +159,5 @@ activeExerciseTypes =
   , EvaluateDunnBelnap
   , CounterexampleClassical
   , CounterexampleNonclassical
+  , ProofWithRequirements
   ]
