@@ -11,7 +11,7 @@ import Import ( shamlet
               )
 
 import Data.Aeson (ToJSON, FromJSON)
-import Data.List ((\\), maximumBy, nub)
+import Data.List ((\\), intersect, maximumBy, nub)
 import Data.Text (Text, pack, unpack)
 import GHC.Generics (Generic)
 import Text.Blaze.Html (preEscapedToHtml)
@@ -40,6 +40,7 @@ import Logic.PreProofs
     , ppConclusion
     , ppOpenAssumptions
     , ppDischargedAssumptions
+    , ppRulesIn
     , ppSize
     , ruleName
     )
@@ -173,6 +174,8 @@ data ProofRequirements =
                     , reqOpenAssumptions :: [Formula]
                     , reqDischarged :: [Formula]
                     , reqMinRules :: Int
+                    , reqUsedRules :: [Rule]
+                    , reqUnusedRules :: [Rule]
                     } deriving (Show, Generic, FromJSON, ToJSON)
 
 data CheckRequirements
@@ -181,6 +184,8 @@ data CheckRequirements
   | TooSmall Int
   | MissingOpenAssumption Formula
   | MissingDischarged Formula
+  | MissingRule Rule
+  | HasBannedRule Rule
   | BadProof ProofStatus
   deriving (Show, Generic, ToJSON, FromJSON)
 
@@ -191,6 +196,8 @@ checkRequirements reqs pp = case checkProof pp of
     | ppSize pp < reqMinRules reqs -> TooSmall $ ppSize pp
     | (f:_) <- nub (reqOpenAssumptions reqs) \\ ppOpenAssumptions pp -> MissingOpenAssumption f
     | (f:_) <- nub (reqDischarged reqs) \\ ppDischargedAssumptions pp -> MissingDischarged f
+    | (f:_) <- nub (reqUsedRules reqs) \\ ppRulesIn pp -> MissingRule f
+    | (f:_) <- (nub $ reqUnusedRules reqs) `intersect` ppRulesIn pp -> HasBannedRule f
     | otherwise -> MeetsRequirements
   bad -> BadProof bad
 
@@ -200,13 +207,17 @@ displayRequirementsCheck cr = renderHtml disp
                 MeetsRequirements ->
                   [shamlet|<p>This is a correct proof, and it meets the requirements. Nice going!|]
                 WrongConclusion badfm goodfm ->
-                  [shamlet|<p>This proof has conclusion <code>#{displayFormula badfm}</code>, but the requirements say it needs the conclusion <code>#{displayFormula goodfm}</code>!|]
+                  [shamlet|<p>Missed requirement: This proof has conclusion <code>#{displayFormula badfm}</code>, but the requirements say it needs the conclusion <code>#{displayFormula goodfm}</code>!|]
                 TooSmall sz ->
-                  [shamlet|<p>This proof uses just #{show sz} rules; it's too small!|]
+                  [shamlet|<p>Missed requirement: This proof uses just #{show sz} rules; it's too small!|]
                 MissingOpenAssumption fm ->
-                  [shamlet|<p>This proof does not have <code>#{displayFormula fm}</code> among its open assumptions!|]
+                  [shamlet|<p>Missed requirement: This proof does not have <code>#{displayFormula fm}</code> among its open assumptions!|]
                 MissingDischarged fm ->
-                  [shamlet|<p>This proof does not have <code>#{displayFormula fm}</code> among its discharged assumptions!|]
+                  [shamlet|<p>Missed requirement: This proof does not have <code>#{displayFormula fm}</code> among its discharged assumptions!|]
+                MissingRule r ->
+                  [shamlet|<p>Missed requirement: This proof does not use the rule <code>#{ruleName r}</code>!|]
+                HasBannedRule r ->
+                  [shamlet|<p>Missed requirement: This proof uses the rule <code>#{ruleName r}</code>!|]
                 BadProof ps -> preEscapedToHtml $ displayProofStatus ps
 
 -- Proof of arguments

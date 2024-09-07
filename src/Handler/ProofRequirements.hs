@@ -9,7 +9,7 @@ module Handler.ProofRequirements where
 
 import ExerciseType (ExerciseType(..))
 import Foundation
-  ( Route(ProofRequirementsR), Handler )
+  ( Route(..), Handler )
 import Import.NoFoundation
   ( Attempt(..)
   , Bool(..)
@@ -18,6 +18,7 @@ import Import.NoFoundation
   , Exercise(..)
   , FromJSON(..)
   , Html
+  , Int
   , IO
   , Key
   , Maybe(..)
@@ -61,7 +62,7 @@ import Import.NoFoundation
   )
 
 import Data.Aeson (Result(..), decodeStrict, encode, withObject)
-import Data.List (nub)
+import Data.List (nub, (\\))
 import Data.Text.Encoding (decodeUtf8, encodeUtf8)
 import qualified System.Random as SR
 import Text.Julius (rawJS)
@@ -73,7 +74,9 @@ import Logic.Random (randomFormula, randomFormulas)
 import Logic.PreProofs ( RawProofTree(..)
                        , Rule(..)
                        , UnaryRule(..)
+                       , BinaryRule(..)
                        , TrinaryRule(..)
+                       , randomRuleList
                        , readPreProof
                        , ruleName
                        , displayPPPError
@@ -107,17 +110,21 @@ randomRequirements
   -> (ProofRequirements, g)
 randomRequirements cSetts aSetts g =
   let (con, g1) = randomFormula cSetts g
-      (size, g2) = SR.randomR (1, 4) g1
+      (size, g2) = SR.randomR (1 :: Int, 4) g1
       (reqAs, g3) = SR.randomR (0, 2) g2
       (reqDs, g4) = SR.randomR (0, 2) g3
       (fms, g5) = randomFormulas aSetts (reqAs + reqDs) g4
       (rOA, rDA) = splitAt reqAs fms
+      (reqRs, g6) = randomRuleList 3 g5
+      (bannedRs, g7) = randomRuleList 2 g6
       prfR = ProofRequirements { reqConclusion = con
-                               , reqOpenAssumptions = nub rOA
-                               , reqDischarged = nub rDA
-                               , reqMinRules = size
+                               , reqOpenAssumptions = [] -- used to be: nub rOA
+                               , reqDischarged = [] -- used to be: nub rDA
+                               , reqMinRules = 0 -- used to be: size
+                               , reqUsedRules = reqRs
+                               , reqUnusedRules = bannedRs \\ reqRs
                                }
-  in (prfR, g5)
+  in (prfR, g7)
 
 
 randomRequirementsIO
@@ -139,6 +146,7 @@ getProofRequirementsR = do
   let ex = Exercise { exerciseExerciseType = ProofWithRequirements
                     , exerciseExerciseContent = encodePR requirements }
       (buttonSubmitId, buttonDivId) = buttonIds
+      (negButt, conjButt, disjButt, implButt, fumButt) = connButtonIds
       (proofIdPrefix, feedbackId) = divIds
       proofId = proofIdPrefix <> "1"
       startingConclusion = reqConclusion requirements
@@ -164,6 +172,18 @@ getProofRequirementsR = do
                       <li>Uses at least one rule
                    $if reqMinRules requirements > 1
                       <li>Uses at least #{show $ reqMinRules requirements} rules
+                   $if null (reqUsedRules requirements)
+                   $else
+                     <li>Includes the rule(s):
+                       <ul>
+                         $forall r <- (reqUsedRules requirements)
+                           <li><code .oblang>#{ruleName r}</code>
+                   $if null (reqUnusedRules requirements)
+                   $else
+                     <li>Does not use the rule(s):
+                       <ul>
+                         $forall r <- (reqUnusedRules requirements)
+                           <li><code .oblang>#{ruleName r}</code>
         |]
       pExEntry = singleProofEntry proofId ""
       pExContentPost = toJSON requirements
@@ -191,15 +211,18 @@ getProofRequirementsR = do
           [hamlet|<link rel=stylesheet href=static/css/proof.css type="text/css" media="screen" title="no title" charset="utf-8">|]
       $(widgetFile "proofs-layout")
 
--- TODO: This is a hack, setting up fake ridiculous requirements that are (almost?) certainly failed,
+-- TODO: This is a hack, setting up fake ridiculous requirements that are certainly failed,
 -- for use when there is somehow a DB entry with requirements we can't read, which should never happen
 ridiculousRequirements :: ProofRequirements
 ridiculousRequirements =
-  let sillyList = [atom "p"]
+  let sillyFmlaList = [atom "p"]
+      sillyRuleList = [RU $ II "))*(^%#*)"]
   in ProofRequirements { reqConclusion = atom "@#*!**#**!"
-                       , reqOpenAssumptions = sillyList
-                       , reqDischarged = sillyList
+                       , reqOpenAssumptions = sillyFmlaList
+                       , reqDischarged = sillyFmlaList
                        , reqMinRules = 100000
+                       , reqUsedRules = sillyRuleList
+                       , reqUnusedRules = sillyRuleList
                        }
 
 postProofRequirementsR :: Handler Value
@@ -238,6 +261,9 @@ postProofRequirementsR = do
 
 buttonIds :: (Text, Text)
 buttonIds = ("js-button-submit-proof", "js-button-div")
+
+connButtonIds :: (Text, Text, Text, Text, Text)
+connButtonIds = ("js-neg-button", "js-conj-button", "js-disj-button", "js-impl-button", "js-fum-button")
 
 divIds :: (Text, Text)
 divIds = ("js-proof", "js-feedback")

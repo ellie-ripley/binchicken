@@ -20,34 +20,50 @@
     <div .row>
         <div .col-lg-12>
           <ul>
-            <li>Input connectives like so:
+            <li>You can input connectives by using the symbols below or their ASCII approximations as shown:
                 <table .table.table-striped>
                     <thead .thead-light>
                         <tr>
                             <th>Connective
-                            <th>Write:
+                            <th>Write (click to copy symbol to your clipboard):
                     <tbody>
                       <tr>
                         <td>Negation
                         <td>
-                            <code>~ or ¬
+                            <button .btn.btn-primary.conn-button ##{negButt}>
+                                <code>¬
+                                or
+                                <code>~
                       <tr>
                         <td>Conjunction
                         <td>
-                            <code>/\ or ∧
+                            <button .btn.btn-primary.conn-button ##{conjButt}>
+                                <code>∧
+                                or
+                                <code>/\
                       <tr>
                         <td>Disjunction
                         <td>
-                            <code>\/ or ∨
+                            <button .btn.btn-primary.conn-button ##{disjButt}>
+                                <code>∨
+                                or
+                                <code>\/
                       <tr>
                         <td>Implication
                         <td>
-                            <code>-> or →
+                            <button .btn.btn-primary.conn-button ##{implButt}>
+                                <code>→
+                                or
+                                <code>->
                       <tr>
                         <td>Falsum
                         <td>
-                            <code>_|_ or ⊥
-            <li>For rule labels, use the connective plus <code>I</code> for introductions or <code>E</code> for eliminations. For disjunction introductions and conjunction eliminations, you should add in addition an <code>L</code> or <code>R</code> as appropriate.
+                            <button .btn.btn-primary.conn-button ##{fumButt}>
+                                <code>⊥
+                                or
+                                <code>_|_
+            <li>For practice entering proofs, you can check out <a href=@{ProofPlaygroundR}>the proof playground</a>
+            <li>For rule labels, use the connective plus <code>I</code> for introductions or <code>E</code> for eliminations. For disjunction introductions and conjunction eliminations, you should add in addition an <code>L</code> or <code>R</code> as appropriate. For example, you might write <code>#{ruleName $ RB CI}</code> or <code>#{ruleName $ RU CEL}</code>.
             <li>For discharging rules (that's <code>#{ruleName $ RU (II "")}</code>, <code>#{ruleName $ RU (NI "")}</code>, and <code>#{ruleName $ RT (DE "")}</code>), add a numeral to the end of the rule name as a discharge marker. For example, you might use <code>#{ruleName $ RU (II "5")}</code> or <code>#{ruleName $ RT (DE "23")}</code>.
             <li>To discharge an assumption, surround it with <code>[</code> and <code>]</code>, and put the appropriate discharge numeral immediately after that. For example, you might write <code>[p -> q]3</code> to discharge the assumption <code>p -> q</code> with the label <code>3</code>.
             <li>Press <code>Enter</code> to create a new sibling node.

@@ -6,7 +6,7 @@
 {-# LANGUAGE TypeFamilies #-}
 module Handler.Exercises where
 
-import Foundation ( Handler )
+import Foundation ( Handler, Route(..) )
 import Import.NoFoundation
     ( ($),
       setTitle,

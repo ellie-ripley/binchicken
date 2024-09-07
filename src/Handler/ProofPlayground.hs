@@ -49,9 +49,6 @@ import Logic.Formulas ( displayFormula
 import Logic.Proofs ( ProofStatus(..)
                     , checkProof
                     , displayProofStatus
-                    , maxSegments
-                    , renderMaxSegments
-                    , removeCompoundFEs
                     )
 
 
@@ -89,10 +86,9 @@ postProofPlaygroundR = do
                 case checkProof prf of
                   GoodProof ->
                     let statFeed = displayProofStatus $ checkProof prf
-                        maxFeed = renderMaxSegments $ maxSegments prf
                         concFeed = "<p>The conclusion is " <> displayFormula (ppConclusion prf) <> "</p>"
-                        fb = statFeed <> (unpack concFeed) <> maxFeed
-                        returnPrf = removeCompoundFEs prf
+                        fb = statFeed <> (unpack concFeed)
+                        returnPrf = prf
                     in object [ "feedback" .= toJSON fb
                               , "newproof" .= toJSON (makeRaw returnPrf)
                               ]

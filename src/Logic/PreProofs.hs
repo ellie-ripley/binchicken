@@ -3,6 +3,7 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Logic.PreProofs where
 
@@ -10,9 +11,11 @@ import Import.NoFoundation ( shamlet )
 
 import Data.Aeson (ToJSON, FromJSON)
 import Data.List ( nub )
+import Data.Monoid (appEndo, Endo(..))
 import GHC.Generics (Generic)
 import Data.Text (Text)
 import qualified Data.Text as T
+import qualified System.Random as SR
 import Text.Blaze.Html.Renderer.String (renderHtml)
 
 
@@ -49,7 +52,7 @@ data BinaryRule
   = CI
   | IE
   | NE
-  deriving (Eq, Show, Generic, ToJSON, FromJSON)
+  deriving (Bounded, Enum, Eq, Show, Generic, ToJSON, FromJSON)
 
 newtype TrinaryRule
   = DE Text
@@ -60,6 +63,52 @@ data Rule
   | RB BinaryRule
   | RT TrinaryRule
   deriving (Eq, Show, Generic, ToJSON, FromJSON)
+
+applyAll :: [a -> a] -> a -> a
+applyAll = appEndo . mconcat . map Endo
+
+-- | Picks a random rule. If it picks a discharging rule, leaves the Text empty.
+randomRule
+  :: forall g. (SR.RandomGen g)
+  => g
+  -> (Rule, g)
+randomRule g =
+  let (ruleIndex, g1) = SR.randomR (0, 10) g
+  in  (go ruleIndex, g1)
+    where
+      go = \case
+            (0 :: Int) -> RU CEL
+            1 -> RU CER
+            2 -> RU DIL
+            3 -> RU DIR
+            4 -> RU $ II ""
+            5 -> RU $ NI ""
+            6 -> RU FE
+            7 -> RB CI
+            8 -> RB IE
+            9 -> RB NE
+            10 -> RT $ DE ""
+            _ -> error "A random number from 0 to 10 was outside that range. ?"
+
+addRandomRule
+  :: forall g. (SR.RandomGen g)
+  => ([Rule], g)
+  -> ([Rule], g)
+addRandomRule (rs, g) = (r : rs, g1)
+  where (r, g1) = randomRule g
+
+-- | generates a random list of rules with a maximum size.
+-- | slightly biased towards smaller lists, since it rolls with replacement and then nubs down
+randomRuleList
+  :: forall g. (SR.RandomGen g)
+  => Int -- ^ maximum list size
+  -> g
+  -> ([Rule], g)
+randomRuleList maxSize g =
+  let (size, g1) = SR.randomR (0, maxSize) g
+      (rs, g2) = applyAll (replicate size addRandomRule) ([], g1)
+  in  (nub rs, g2)
+
 
 governedConn :: Rule -> Connective
 governedConn = \case
@@ -321,3 +370,13 @@ ppDischargedAssumptions = nub . go
           UR _ pp _ -> go pp
           BR _ pp1 pp2 _ -> go pp1 <> go pp2
           TR _ pp1 pp2 pp3 _ -> go pp1 <> go pp2 <> go pp3
+
+ppRulesIn :: PreProof -> [Rule]
+ppRulesIn = nub . go
+  where
+    go = \case
+          Open _ -> []
+          Discharged _ _ -> []
+          UR r pp _ -> (RU r) : go pp
+          BR r pp1 pp2 _ -> (RB r) : (go pp1 <> go pp2)
+          TR r pp1 pp2 pp3 _ -> (RT r) : (go pp1 <> go pp2 <> go pp3)

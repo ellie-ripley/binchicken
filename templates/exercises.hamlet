@@ -15,3 +15,4 @@
                         <li>
                             <a .col-6.ex-link href="@{exerciseRoute et}">
                                 #{fromEnum et}. #{prettyExerciseName et}
+            <p><a href=@{ProofPlaygroundR}>The proof playground</a> is not an exercise, but a place where you can practice entering proofs!
