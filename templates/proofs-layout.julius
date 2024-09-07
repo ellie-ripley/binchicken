@@ -64,8 +64,8 @@ $(function() {
       });
     } else {
       ajaxData = JSON.stringify({
-        pExContentPost: #{pExContentPost},
-        pExSubmittedProof: root1
+        prExerciseId: #{toJSON exid},
+        prRawProof: root1
       });
     }
     $.ajax({

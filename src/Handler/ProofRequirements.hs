@@ -90,8 +90,8 @@ data PRAttempt =
 
 instance FromJSON PRAttempt where
   parseJSON = withObject "PRAttempt" $ \v -> PRAttempt
-    <$> v .: "pExContentPost"
-    <*> v .: "pExSubmittedProof"
+    <$> v .: "prExerciseId"
+    <*> v .: "prRawProof"
 
 fmSetts :: RandomFormulaSettings
 fmSetts = defaultRandomFormulaSettings ProofWithRequirements
