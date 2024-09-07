@@ -64,6 +64,12 @@ data Rule
   | RT TrinaryRule
   deriving (Eq, Show, Generic, ToJSON, FromJSON)
 
+ruleRoot :: Rule -> Rule
+ruleRoot (RU (II _)) = RU $ II ""
+ruleRoot (RU (NI _)) = RU $ NI ""
+ruleRoot (RT (DE _)) = RT $ DE ""
+ruleRoot r = r
+
 applyAll :: [a -> a] -> a -> a
 applyAll = appEndo . mconcat . map Endo
 
@@ -97,15 +103,15 @@ addRandomRule
 addRandomRule (rs, g) = (r : rs, g1)
   where (r, g1) = randomRule g
 
--- | generates a random list of rules with a maximum size.
+-- | generates a random list of rules with a minimum and maximum size.
 -- | slightly biased towards smaller lists, since it rolls with replacement and then nubs down
 randomRuleList
   :: forall g. (SR.RandomGen g)
-  => Int -- ^ maximum list size
+  => (Int, Int) -- ^ min and maximum list size
   -> g
   -> ([Rule], g)
-randomRuleList maxSize g =
-  let (size, g1) = SR.randomR (0, maxSize) g
+randomRuleList (minSize, maxSize) g =
+  let (size, g1) = SR.randomR (minSize, maxSize) g
       (rs, g2) = applyAll (replicate size addRandomRule) ([], g1)
   in  (nub rs, g2)
 
@@ -377,6 +383,6 @@ ppRulesIn = nub . go
     go = \case
           Open _ -> []
           Discharged _ _ -> []
-          UR r pp _ -> (RU r) : go pp
-          BR r pp1 pp2 _ -> (RB r) : (go pp1 <> go pp2)
-          TR r pp1 pp2 pp3 _ -> (RT r) : (go pp1 <> go pp2 <> go pp3)
+          UR r pp _ -> ruleRoot (RU r) : go pp
+          BR r pp1 pp2 _ -> ruleRoot (RB r) : (go pp1 <> go pp2)
+          TR r pp1 pp2 pp3 _ -> ruleRoot (RT r) : (go pp1 <> go pp2 <> go pp3)

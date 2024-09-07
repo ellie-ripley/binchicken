@@ -67,6 +67,7 @@ import Data.Text.Encoding (decodeUtf8, encodeUtf8)
 import qualified System.Random as SR
 import Text.Julius (rawJS)
 
+import Handler.Common (updateScore)
 import Handler.LoginCheck (loginNotifyW)
 import Handler.Proofs (singleProofEntry)
 import Logic.Formulas (atom, displayFormula)
@@ -82,6 +83,7 @@ import Logic.PreProofs ( RawProofTree(..)
                        , displayPPPError
                        )
 import Logic.Proofs
+import Scoring (boolToCorrect)
 import Settings.Binchicken (RandomFormulaSettings(..), defaultRandomFormulaSettings)
 
 
@@ -115,8 +117,8 @@ randomRequirements cSetts aSetts g =
       (reqDs, g4) = SR.randomR (0, 2) g3
       (fms, g5) = randomFormulas aSetts (reqAs + reqDs) g4
       (rOA, rDA) = splitAt reqAs fms
-      (reqRs, g6) = randomRuleList 3 g5
-      (bannedRs, g7) = randomRuleList 2 g6
+      (reqRs, g6) = randomRuleList (1, 3) g5
+      (bannedRs, g7) = randomRuleList (0, 2) g6
       prfR = ProofRequirements { reqConclusion = con
                                , reqOpenAssumptions = [] -- used to be: nub rOA
                                , reqDischarged = [] -- used to be: nub rDA
@@ -256,6 +258,7 @@ postProofRequirementsR = do
                   now <- liftIO getCurrentTime
                   let attempt' = attempt { attemptUserId = Just uid, attemptSubmittedAt = Just now }
                   insertedAttempt <- runDB $ insertEntity attempt'
+                  updateScore uid ProofWithRequirements (boolToCorrect corr)
                   returnJson (insertedAttempt, responseObj)
               Nothing -> returnJson (attempt, responseObj)
 

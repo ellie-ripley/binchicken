@@ -134,7 +134,7 @@ targets = \case
   EvaluateDunnBelnap           -> ExerciseTargets 15 30 10
   CounterexampleClassical      -> ExerciseTargets 20 40 15
   CounterexampleNonclassical   -> ExerciseTargets 20 40 15
-  ProofWithRequirements        -> ExerciseTargets 6  10 5
+  ProofWithRequirements        -> ExerciseTargets 10 20 10
 
 fullStreak :: ExerciseType -> Int
 fullStreak = streakMilestone1 . targets
