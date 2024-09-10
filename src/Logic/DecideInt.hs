@@ -3,7 +3,7 @@
 
 module Logic.DecideInt where
 
-import Data.List (all, delete, elem, null)
+import Data.List (delete)
 import Data.Maybe (maybeToList)
 import GHC.Generics (Generic)
 

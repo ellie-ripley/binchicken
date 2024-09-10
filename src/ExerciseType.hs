@@ -19,6 +19,7 @@ data ExerciseType =
   | CounterexampleClassical
   | CounterexampleNonclassical
   | ProofWithRequirements
+  | ProveAnArgument
   deriving (Eq, Read, Show, Enum, Ord, Bounded, Generic)
 instance ToJSON ExerciseType
 instance FromJSON ExerciseType
@@ -34,6 +35,7 @@ prettyExerciseName = \case
   CounterexampleClassical -> "Give a classical counterexample, if there is one"
   CounterexampleNonclassical -> "Give a counterexample, if there is one, in the indicated matrix"
   ProofWithRequirements -> "Give a proof that meets the given requirements"
+  ProveAnArgument -> "Give an NJ proof of a given argument"
 
 data ExerciseTargets =
   ExerciseTargets { totalMilestone1 :: Int

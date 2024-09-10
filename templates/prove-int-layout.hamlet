@@ -1,0 +1,80 @@
+<div .container>
+    ^{loginNotifyW}
+    <div .row>
+        <h2>#{pExName}
+    <div .row>
+        <div .col-lg-12>
+            ^{pExInstructions}
+    <div .row>
+        <div .col-lg-12.oblang ##{displayArgumentId}>
+            <ul .argument>
+                $forall prem <- prems
+                    <li>#{displayFormula prem}
+                <li>----------------
+                <li>#{displayFormula conc}
+    ^{pExEntry}
+    <div .row>
+        <div .col-4 ##{buttonDivId}>
+            <button .btn.btn-primary ##{buttonSubmitId}>Submit proof
+    <div .row>
+        <div .col-lg-12>
+            <div ##{feedbackId}>
+    <div .row>
+        <h5>How to enter a proof:
+    <div .row>
+        <div .col-lg-12>
+          <ul>
+            <li>You can input connectives by using the symbols below or their ASCII approximations as shown:
+                <table .table.table-striped>
+                    <thead .thead-light>
+                        <tr>
+                            <th>Connective
+                            <th>Write (click to copy symbol to your clipboard):
+                    <tbody>
+                      <tr>
+                        <td>Negation
+                        <td>
+                            <button .btn.btn-primary.conn-button ##{negButt}>
+                                <code>¬
+                                or
+                                <code>~
+                      <tr>
+                        <td>Conjunction
+                        <td>
+                            <button .btn.btn-primary.conn-button ##{conjButt}>
+                                <code>∧
+                                or
+                                <code>/\
+                      <tr>
+                        <td>Disjunction
+                        <td>
+                            <button .btn.btn-primary.conn-button ##{disjButt}>
+                                <code>∨
+                                or
+                                <code>\/
+                      <tr>
+                        <td>Implication
+                        <td>
+                            <button .btn.btn-primary.conn-button ##{implButt}>
+                                <code>→
+                                or
+                                <code>->
+                      <tr>
+                        <td>Falsum
+                        <td>
+                            <button .btn.btn-primary.conn-button ##{fumButt}>
+                                <code>⊥
+                                or
+                                <code>_|_
+            <li>For practice entering proofs, you can check out <a href=@{ProofPlaygroundR}>the proof playground</a>
+            <li>For rule labels, use the connective plus <code>I</code> for introductions or <code>E</code> for eliminations. For disjunction introductions and conjunction eliminations, you should add in addition an <code>L</code> or <code>R</code> as appropriate. For example, you might write <code>#{ruleName $ RB CI}</code> or <code>#{ruleName $ RU CEL}</code>.
+            <li>For discharging rules (that's <code>#{ruleName $ RU (II "")}</code>, <code>#{ruleName $ RU (NI "")}</code>, and <code>#{ruleName $ RT (DE "")}</code>), add a numeral to the end of the rule name as a discharge marker. For example, you might use <code>#{ruleName $ RU (II "5")}</code> or <code>#{ruleName $ RT (DE "23")}</code>.
+            <li>To discharge an assumption, surround it with <code>[</code> and <code>]</code>, and put the appropriate discharge numeral immediately after that. For example, you might write <code>[p -> q]3</code> to discharge the assumption <code>p -> q</code> with the label <code>3</code>.
+            <li>Press <code>Enter</code> to create a new sibling node.
+            <li>Press <code>Ctrl-Enter</code> to create a new parent node.
+            <li>Press <code>Ctrl-Shift-Enter</code> to create a new child node.
+            <li>Cycle nodes with <code>Tab</code> and <code>Shift-Tab</code>.
+            <li>Undo and Redo changes with <code>Ctrl-Z</code> and <code>Ctrl-Shift-Z</code>.
+            <li>Delete subtrees with <code>Ctrl-Backspace</code>.
+            <li>Cut, Copy, and Paste subtrees with <code>Shift-Ctrl-X</code>, <code>Shift-Ctrl-C</code>, and <code>Shift-Ctrl-V</code>
+            <li>Finally, if you run into bugs or difficulties, please let me know! Screenshots are very much appreciated.

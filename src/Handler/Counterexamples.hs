@@ -21,7 +21,6 @@ import Import.NoFoundation
       Maybe(..),
       Value,
       Generic,
-      IO,
       Int,
       SentExercise(..),
       Text,
@@ -51,18 +50,16 @@ import Import.NoFoundation
       toStrict,
       return,
       error,
-      length,
       (-))
 import Text.Julius (RawJS (..))
 import Data.Aeson (Object, Result(..), (.=), (.:), decodeStrict, encode, object, toJSON, ToJSON, FromJSON)
 import Data.Aeson.Text (encodeToLazyText)
 import Data.Aeson.Types (parse)
 import Data.Text.Encoding (decodeUtf8, encodeUtf8)
-import qualified System.Random as SR
 
 import Handler.LoginCheck (loginNotifyW)
 import Logic.Formulas (Atomic(..), displayAtomic, displayFormula)
-import Logic.Random (randomArgumentIO)
+import Logic.Random (randomElementIO, randomArgumentIO)
 import Settings.Binchicken (RandomArgumentSettings(..))
 import Logic.Valuations (ValDisplay(..), displayVal, objToValuation)
 import Logic.Arguments (Argument(..), atomsInArg)
@@ -93,10 +90,6 @@ data CexOutcome =
 (x:_) !! 0 = x
 (_:xs) !! n = xs !! (n - 1)
 
-randomElement :: [a] -> IO a
-randomElement xs = do
-  ix <- SR.getStdRandom (SR.randomR (0, length xs - 1))
-  return (xs !! ix)
 
 data ICEXAttempt =
   ICEXAttempt { icexExerciseId :: Key Exercise
@@ -131,7 +124,7 @@ getCounterexample ras mats etype title headr extraText ajaxRoute = do
         validButtonId = "js-valid-button" :: Text
         submitValButtonId = "js-submit-button" :: Text
     arg@(Argument prems conc) <- liftIO $ randomArgumentIO ras
-    (MatrixInfo vls mtag) <- liftIO $ randomElement mats
+    (MatrixInfo vls mtag) <- liftIO $ randomElementIO mats
     let ats = atomsInArg arg
         atsJs = toJSON . map displayAtomic $ ats
         valsToChooseFrom = vls
