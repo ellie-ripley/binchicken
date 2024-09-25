@@ -27,25 +27,12 @@ import Data.Aeson ( FromJSON
                   , toJSON
                   , (.=)
                   )
-import Data.Text (Text, unpack)
+import Data.Text (Text)
 import GHC.Generics (Generic)
 import Text.Julius (rawJS)
 
-import Logic.PreProofs
-    ( Rule(..),
-      TrinaryRule(..),
-      UnaryRule(..),
-      BinaryRule(..),
-      RawProofTree,
-      ruleName,
-      displayPPPError,
-      makeRaw,
-      ppConclusion,
-      readPreProof )
-
-import Logic.Formulas ( displayFormula
-                      )
-import Logic.Lambda   ( displayTermError
+import Logic.Lambda   ( displayTermAllPars
+                      , displayTermError
                       , parseTerm
                       )
 
@@ -75,7 +62,7 @@ postLambdaPlaygroundR = do
               Left err -> object [ "feedback" .= toJSON ("Error in input term: " <> displayTermError err) ]
               Right tm ->
                 object [ "feedback" .= toJSON ("Good term!" :: Text)
-                       , "term" .= toJSON ("Here is the term it is" :: Text)
+                       , "term" .= toJSON ( "Here is the term it is, with all parentheses included: " <> displayTermAllPars tm )
                        ]
       returnJson responseObj
 

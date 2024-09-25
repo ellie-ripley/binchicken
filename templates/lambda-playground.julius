@@ -10,7 +10,7 @@ function reportAnswer(data) {
   }
   if ("term" in data)
   {
-    fb.textContent += data.term;
+    fb.textContent += " " + data.term;
   }
 }
 
