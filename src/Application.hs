@@ -102,6 +102,7 @@ import Handler.ProveArgument ( getProveArgumentR, postProveArgumentR )
 import Handler.Progress ( getProgressR )
 import Handler.Seshat ( getSeshatR )
 import Handler.ProofPlayground ( getProofPlaygroundR, postProofPlaygroundR )
+import Handler.LambdaPlayground ( getLambdaPlaygroundR, postLambdaPlaygroundR )
 
 -- This line actually creates our YesodDispatch instance. It is the second half
 -- of the call to mkYesodData which occurs in Foundation.hs. Please see the

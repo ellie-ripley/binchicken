@@ -1,0 +1,40 @@
+
+function reportAnswer(data) {
+  console.log("Success!");
+  console.log(data);
+  const fb = document.getElementById("#{rawJS feedbackId}");
+  fb.innerHTML = "";
+  if ("feedback" in data)
+  {
+    fb.textContent = data.feedback;
+  }
+  if ("term" in data)
+  {
+    fb.textContent += data.term;
+  }
+}
+
+function logError(data) {
+  console.log("Error reporting response.");
+  console.log(data);
+}
+
+$(function() {
+  $("##{rawJS buttonSubmitId}").click(function() {
+    var ajaxData;
+    ajaxData = JSON.stringify({
+      submittedTerm: document.getElementById("#{rawJS termId}").value,
+    });
+    $.ajax({
+      url: '@{ajaxRoute}',
+      type: 'POST',
+      contentType: "application/json",
+      data: ajaxData,
+      success: reportAnswer,
+      error: logError
+    });
+  });
+  $("##{rawJS lambdaButt}").click(function() {
+    navigator.clipboard.writeText("λ");
+  });
+});
