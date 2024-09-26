@@ -11,6 +11,7 @@ import Import ( defaultLayout
               , hamlet
               , parseCheckJsonBody
               , returnJson
+              , shamlet
               , setTitle
               , toWidgetHead
               , widgetFile
@@ -28,12 +29,26 @@ import Data.Aeson ( FromJSON
                   , (.=)
                   )
 import Data.Text (Text)
+import qualified Data.Text as T
 import GHC.Generics (Generic)
+import Text.Blaze.Html.Renderer.String (renderHtml)
 import Text.Julius (rawJS)
 
-import Logic.Lambda   ( displayTermAllPars
+import Logic.Lambdas.Types (LVar(..))
+import Logic.Lambda   ( dbIsRedex
+                      , dbParallelOneStep
+                      , deBruijn
+                      , displayDBIsRedex
+                      , displayDBReductionResult
+                      , displayDeBruijn
+                      , displayLVar
+                      , displayTermAllPars
+                      , displayTermMinPars
                       , displayTermError
+                      , namify
+                      , normaliseDB
                       , parseTerm
+                      , freeVars
                       )
 
 data LPData = LPData { submittedTerm :: Text }
@@ -61,9 +76,30 @@ postLambdaPlaygroundR = do
             case tryTerm of
               Left err -> object [ "feedback" .= toJSON ("Error in input term: " <> displayTermError err) ]
               Right tm ->
-                object [ "feedback" .= toJSON ("Good term!" :: Text)
-                       , "term" .= toJSON ( "Here is the term it is, with all parentheses included: " <> displayTermAllPars tm )
-                       ]
+                let dbt = deBruijn tm
+                    aeq = namify (map (LVar . T.pack . (:[])) ['a'..'z']) dbt
+                    tminfo = [shamlet|<ul>
+                                         <li>With all parentheses: #{displayTermAllPars tm}
+                                         <li>With minimal parentheses: #{displayTermMinPars tm}
+                                         $if null (freeVars tm)
+                                            <li>It has no free variables
+                                         $else
+                                            <li>Its free variables:
+                                              $forall vr <- freeVars tm
+                                                 <code> #{displayLVar vr}
+                                         $maybe a <- aeq
+                                           <li>An alpha equivalent term: #{displayTermMinPars a}
+                                         $nothing
+                                           <li>Couldn't make an alpha equivalent: that's a lot of bound variables!
+                                         <li>Locally nameless (ignore this!): #{displayDeBruijn dbt}
+                                         <li>#{displayDBIsRedex (dbIsRedex dbt)}
+                                         <li>#{displayDBReductionResult (dbParallelOneStep dbt)}
+                                         <li>Normal form: #{displayDeBruijn (normaliseDB dbt)}
+
+                             |]
+                in  object [ "feedback" .= toJSON ("Good term!" :: Text)
+                           , "termInfo" .= (toJSON . renderHtml $ tminfo)
+                           ]
       returnJson responseObj
 
 buttonIds :: (Text, Text, Text)

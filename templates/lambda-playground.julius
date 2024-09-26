@@ -8,9 +8,9 @@ function reportAnswer(data) {
   {
     fb.textContent = data.feedback;
   }
-  if ("term" in data)
+  if ("termInfo" in data)
   {
-    fb.textContent += " " + data.term;
+    fb.innerHTML += " " + data.termInfo;
   }
 }
 

@@ -1,5 +1,9 @@
 {
-module Logic.TermParsing.Lexer (alexScanTokens, Token(..)) where
+{-# LANGUAGE OverloadedStrings #-}
+module Logic.TermParsing.Lexer (alexScanTokens, displayToken, Token(..)) where
+
+import Data.Text (Text)
+import qualified Data.Text as T
 }
 
 %wrapper "basic"
@@ -24,4 +28,11 @@ data Token
   | TokLPar
   | TokRPar
   deriving (Eq, Show)
+
+displayToken :: Token -> Text
+displayToken (TokVar s) = "variable " <> T.pack s
+displayToken TokLambda  = "λ"
+displayToken TokPeriod  = "."
+displayToken TokLPar    = "("
+displayToken TokRPar    = ")"
 }

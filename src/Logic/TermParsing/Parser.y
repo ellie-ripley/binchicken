@@ -1,5 +1,5 @@
 {
-module Logic.TermParsing.Parser (Hap, happyTerm) where
+module Logic.TermParsing.Parser (Hap, HappyError(..), happyTerm) where
 
 import Data.Text (pack)
 import Logic.TermParsing.Lexer (Token(..))
