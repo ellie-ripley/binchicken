@@ -18,13 +18,18 @@ import Logic.Lambdas.Types
   ')' { TokRPar }
   vr  { TokVar $$ }
 
+
 %%
 
+appy
+  : trm       { $1 }
+  | appy trm  { TApp $1 $2 }
+
 trm
-  : vr           { TVar . LVar . pack $ $1 }
-  | '(' trm ')'  { $2 }
-  | trm trm      { TApp $1 $2 }
-  | lm vr pr trm { TLam (LVar . pack $ $2) $4 }
+  : vr            { TVar . LVar . pack $ $1 }
+  | appy          { $1 }
+  | '(' appy ')'  { $2 }
+  | lm vr pr appy { TLam (LVar . pack $ $2) $4 }
 
 {
 parseError :: [Token] -> Hap a
