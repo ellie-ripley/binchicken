@@ -13,6 +13,8 @@ import Logic.Formulas
 import Logic.Arguments
 import Logic.Valuations
 import Logic.IntValid
+import Logic.Lambdas.Types
+import Logic.Lambda
 
 import qualified Data.Map.Strict as Map
 
@@ -433,3 +435,41 @@ randomIntValidArgument setts maxDepth g
 
 randomIntValidArgumentIO :: RandomFormulaSettings -> IO Argument
 randomIntValidArgumentIO setts = SR.getStdRandom $ randomIntValidArgument setts 2
+
+
+-- SECTION: Lambda calculus terms
+
+
+
+randomLambdaTermFixedComplexity
+  :: RandomGen g
+  => [LVar]    -- ^ variables to use
+  -> Int       -- ^ weight (number of Apps + Lams)
+  -> g
+  -> (Term, g)
+randomLambdaTermFixedComplexity vrs 0 g =
+  let (lvr, g1) = randomElement vrs g in (TVar lvr, g1)
+randomLambdaTermFixedComplexity vrs w g =
+  let (coin, g1) = SR.randomR (1 :: Int, 2) g
+  in case coin of
+    1 -> let (leftWeight, g2) = SR.randomR (0, w) g1
+             (left, g3)  = randomLambdaTermFixedComplexity vrs leftWeight g2
+             (right, g4) = randomLambdaTermFixedComplexity vrs (w - leftWeight) g3
+         in (TApp left right, g4)
+    2 -> let (body, g2) = randomLambdaTermFixedComplexity vrs (w - 1) g1
+             fvs = freeVars body
+             numFVs = length fvs
+             (newVarIx, g3) = SR.randomR (0, numFVs) g2
+             (newVar, g4) = case newVarIx of
+                              numFVs -> randomElement vrs g3
+                              n      -> (fvs !! n, g3)
+         in (TLam newVar body, g4)
+
+randomLambdaTerm
+  :: RandomGen g
+  => [LVar]    -- ^ variables to use
+  -> Int       -- ^ maximum weight (Apps + Lams)
+  -> g
+  -> (Term, g)
+randomLambdaTerm vrs w g =
+  let (weight, g1) = SR.randomR (0, w) g in randomLambdaTermFixedComplexity vrs weight g1

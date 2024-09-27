@@ -34,7 +34,7 @@ import GHC.Generics (Generic)
 import Text.Blaze.Html.Renderer.String (renderHtml)
 import Text.Julius (rawJS)
 
-import Logic.Lambdas.Types (LVar(..))
+import Logic.Lambdas.Types (LVar(..), lvarList)
 import Logic.Lambda   ( dbIsRedex
                       , dbParallelOneStep
                       , deBruijn
@@ -77,7 +77,7 @@ postLambdaPlaygroundR = do
               Left err -> object [ "feedback" .= toJSON ("Error in input term: " <> displayTermError err) ]
               Right tm ->
                 let dbt = deBruijn tm
-                    aeq = namify (map (LVar . T.pack . (:[])) ['a'..'z']) dbt
+                    aeq = namify (lvarList ['a'..'z']) dbt
                     tminfo = [shamlet|<ul>
                                          <li>With all parentheses: #{displayTermAllPars tm}
                                          <li>With minimal parentheses: #{displayTermMinPars tm}
