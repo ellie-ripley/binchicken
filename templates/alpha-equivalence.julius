@@ -1,0 +1,47 @@
+
+function reportAnswer(data) {
+  console.log("Success!");
+  console.log(data);
+  const fb = document.getElementById("#{rawJS feedbackId}");
+  fb.innerHTML = "";
+  if (data[0].isCorrect) {
+    fb.innerHTML =
+      "Right answer! Your term is alpha-equivalent to the given term, and uses all new bound variables.";
+    document.getElementById("#{rawJS buttonDivId}").innerHTML = "";
+  } else {
+    fb.innerHTML = "Wrong answer! " + data[1].feedback;
+  }
+  fb.innerHTML +=
+      '<p><button class="btn btn-primary" onClick="window.location.reload(true)">Next exercise</button></p>'
+}
+
+function logError(data) {
+  console.log("Error reporting response.");
+  console.log(data);
+}
+
+$(function() {
+ $('input[type=text]').on('keydown', function(e) {
+    if (e.which === 13 || e.keycode === 13 || e.key === "Enter") {
+        e.preventDefault();
+    }
+  });
+$("##{rawJS buttonSubmitId}").click(function() {
+    var ajaxData;
+    ajaxData = JSON.stringify({
+      aeExerciseId: #{toJSON exid},
+      aeResponse: document.getElementById("#{rawJS termId}").value,
+    });
+    $.ajax({
+      url: '@{ajaxRoute}',
+      type: 'POST',
+      contentType: "application/json",
+      data: ajaxData,
+      success: reportAnswer,
+      error: logError
+    });
+  });
+  $("##{rawJS lambdaButt}").click(function() {
+    navigator.clipboard.writeText("λ");
+  });
+});

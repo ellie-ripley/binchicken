@@ -20,6 +20,8 @@ data ExerciseType =
   | CounterexampleNonclassical
   | ProofWithRequirements
   | ProveAnArgument
+  | AlphaEquivalence
+  | BetaReduction
   deriving (Eq, Read, Show, Enum, Ord, Bounded, Generic)
 instance ToJSON ExerciseType
 instance FromJSON ExerciseType
@@ -36,6 +38,8 @@ prettyExerciseName = \case
   CounterexampleNonclassical -> "Give a counterexample, if there is one, in the indicated matrix"
   ProofWithRequirements -> "Give a proof that meets the given requirements"
   ProveAnArgument -> "Give an NJ proof of a given argument"
+  AlphaEquivalence -> "Provide a term alpha-equivalent to a given term"
+  BetaReduction -> "Beta reduce a term until it can't be reduced farther"
 
 data ExerciseTargets =
   ExerciseTargets { totalMilestone1 :: Int

@@ -27,6 +27,8 @@
 /counterexample-nonclassical CounterexNonclassicalR GET POST
 /proof-requirements ProofRequirementsR GET POST
 /prove-an-argument ProveArgumentR GET POST
+/alpha-equivalence AlphaEquivalenceR GET POST
+/beta-reduction BetaReductionR GET POST
 
 -- Other pages
 /seshat SeshatR GET

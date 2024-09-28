@@ -78,7 +78,6 @@ import Logic.PreProofs ( RawProofTree(..)
                        , UnaryRule(..)
                        , BinaryRule(..)
                        , TrinaryRule(..)
-                       , randomRuleList
                        , readPreProof
                        , ruleName
                        , displayPPPError

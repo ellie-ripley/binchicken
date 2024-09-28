@@ -41,10 +41,48 @@ displayTermAllPars (TLam lvr tm) =
   displayLambda <> displayLVar lvr <> "." <> pars (displayTermAllPars tm)
 
 
+data TermToPrint
+  = TPVar LVar
+  | TPApp [TermToPrint]
+  | TPLam LVar TermToPrint
+  deriving (Eq, Show)
+
+listify :: Term -> [TermToPrint]
+listify (TApp tl tr) = listify tl <> [termToPrint tr]
+listify tm           = [termToPrint tm]
+
+termToPrint :: Term -> TermToPrint
+termToPrint (TVar lvr)    = TPVar lvr
+termToPrint (TLam lvr tm) = TPLam lvr (termToPrint tm)
+termToPrint tm@(TApp _ _) = TPApp (listify tm)
+
+displayAppList :: [TermToPrint] -> Text
+displayAppList [] = ""
+displayAppList apps =
+  let tailApp = case last apps of
+                  tm@(TPLam _ _) -> displayTTP tm
+                  tm -> pars (displayTTP tm)
+  in T.concat $ (map (pars . displayTTP) (init apps)) <> [tailApp]
+
+displayTTP :: TermToPrint -> Text
+displayTTP (TPVar lvr) = displayLVar lvr
+displayTTP (TPLam lvr tm) =
+  displayLambda <> displayLVar lvr <> "." <> displayTTP tm
+displayTTP (TPApp apps) = displayAppList apps
+
+displayTerm :: Term -> Text
+displayTerm = displayTTP . termToPrint
+
+
+
 displayTermMinPars :: Term -> Text
 displayTermMinPars (TVar lvr) = displayLVar lvr
 displayTermMinPars (TLam lvr tm) =
   displayLambda <> displayLVar lvr <> "." <> displayTermMinPars tm
+displayTermMinPars (TApp tl@(TApp _ (TLam _ _)) tr@(TApp _ _)) =
+  pars (displayTermMinPars tl) <> pars (displayTermMinPars tr)
+displayTermMinPars (TApp tl@(TApp _ (TLam _ _)) tr) =
+  pars (displayTermMinPars tl) <> displayTermMinPars tr
 displayTermMinPars (TApp tl@(TLam _ _) tr@(TApp _ _)) =
   pars (displayTermMinPars tl) <> pars (displayTermMinPars tr)
 displayTermMinPars (TApp tl@(TLam _ _) tr) =
@@ -80,6 +118,15 @@ freeVars = nub . (go [])
       | otherwise        = [lvr]
     go bound (TApp tl tr)  = go bound tl <> go bound tr
     go bound (TLam lvr tm) = go (lvr : bound) tm
+
+boundVars :: Term -> [LVar]
+boundVars = nub . list
+  where
+    list :: Term -> [LVar]
+    list (TVar _) = []
+    list (TApp tl tr) = list tl <> list tr
+    list (TLam lvr body) = lvr : list body
+
 
 dbFreeVars :: DeBruijn -> [LVar]
 dbFreeVars = nub . go
@@ -163,7 +210,8 @@ dbIsRedex (DBApp (DBLam body) arg) = RedexReduced (sub 0 body arg)
     sub _ fv@(FreeVar _) _ = fv
     sub n bv@(BoundVar m) ar
       | m == n = ar
-      | otherwise = bv
+      | m < n = bv
+      | otherwise = (BoundVar $ m - 1)
     sub n (DBApp dl dr) ar = DBApp (sub n dl ar) (sub n dr ar)
     sub n (DBLam db) ar = DBLam (sub (n + 1) db ar)
 dbIsRedex _ = NotARedex
@@ -185,6 +233,7 @@ instance Applicative ReductionResult where
   (Reduced f) <*> (Reduced x) = Reduced (f x)
 
 -- | Does one step of reduction at each outermost redex, in parallel
+-- TODO: This is incorrect! It reduces \((\1)x) to \1, when it should reduce to \0
 dbParallelOneStep :: DeBruijn -> ReductionResult DeBruijn
 dbParallelOneStep db =
   case db of

@@ -51,6 +51,8 @@ defaultRandomFormulaSettings = \case
   ProofWithRequirements        -> defRandomFormulaSettings
   ProveAnArgument              ->
     defRandomFormulaSettings { rfDegreeWeights = [1, 2] }
+  AlphaEquivalence             -> defRandomFormulaSettings
+  BetaReduction                -> defRandomFormulaSettings
 
 
 
@@ -139,6 +141,8 @@ targets = \case
   CounterexampleNonclassical   -> ExerciseTargets 20 40 15
   ProofWithRequirements        -> ExerciseTargets 10 20 10
   ProveAnArgument              -> ExerciseTargets 10 20 10
+  AlphaEquivalence             -> ExerciseTargets 10 20 10
+  BetaReduction                -> ExerciseTargets 10 20 10
 
 fullStreak :: ExerciseType -> Int
 fullStreak = streakMilestone1 . targets
@@ -154,6 +158,8 @@ exerciseRoute = \case
   CounterexampleNonclassical   -> CounterexNonclassicalR
   ProofWithRequirements        -> ProofRequirementsR
   ProveAnArgument              -> ProveArgumentR
+  AlphaEquivalence             -> AlphaEquivalenceR
+  BetaReduction                -> BetaReductionR
 
 -- | List of exercise types in actual use
 activeExerciseTypes :: [ExerciseType]
@@ -166,4 +172,6 @@ activeExerciseTypes =
   , CounterexampleNonclassical
   , ProofWithRequirements
   , ProveAnArgument
+  , AlphaEquivalence
+  , BetaReduction
   ]

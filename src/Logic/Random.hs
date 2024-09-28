@@ -461,15 +461,18 @@ randomLambdaTermFixedComplexity vrs w g =
              numFVs = length fvs
              (newVarIx, g3) = SR.randomR (0, numFVs) g2
              (newVar, g4) = case newVarIx of
-                              numFVs -> randomElement vrs g3
-                              n      -> (fvs !! n, g3)
+                              0 -> randomElement vrs g3
+                              n -> (fvs !! (n - 1), g3)
          in (TLam newVar body, g4)
 
 randomLambdaTerm
   :: RandomGen g
-  => [LVar]    -- ^ variables to use
-  -> Int       -- ^ maximum weight (Apps + Lams)
+  => [LVar]      -- ^ variables to use
+  -> (Int, Int)  -- ^ minimum, maximum weight (Apps + Lams)
   -> g
   -> (Term, g)
-randomLambdaTerm vrs w g =
-  let (weight, g1) = SR.randomR (0, w) g in randomLambdaTermFixedComplexity vrs weight g1
+randomLambdaTerm vrs (mn, mx) g =
+  let (weight, g1) = SR.randomR (mn, mx) g in randomLambdaTermFixedComplexity vrs weight g1
+
+randomLambdaTermIO :: [LVar] -> (Int, Int) -> IO Term
+randomLambdaTermIO lvr ws = SR.getStdRandom $ randomLambdaTerm lvr ws

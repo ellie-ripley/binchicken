@@ -42,6 +42,7 @@ import Logic.Lambda   ( dbIsRedex
                       , displayDBReductionResult
                       , displayDeBruijn
                       , displayLVar
+                      , displayTerm
                       , displayTermAllPars
                       , displayTermMinPars
                       , displayTermError
@@ -78,6 +79,8 @@ postLambdaPlaygroundR = do
               Right tm ->
                 let dbt = deBruijn tm
                     aeq = namify (lvarList ['a'..'z']) dbt
+                    normalDB = normaliseDB dbt
+                    normaltm = namify (lvarList ['a'..'z']) normalDB
                     tminfo = [shamlet|<ul>
                                          <li>With all parentheses: #{displayTermAllPars tm}
                                          <li>With minimal parentheses: #{displayTermMinPars tm}
@@ -90,12 +93,16 @@ postLambdaPlaygroundR = do
                                          $maybe a <- aeq
                                            <li>An alpha equivalent term: #{displayTermMinPars a}
                                          $nothing
-                                           <li>Couldn't make an alpha equivalent: that's a lot of bound variables!
+                                           <li>Couldn't make an alpha equivalent: that's a big term!
                                          <li>Locally nameless (ignore this!): #{displayDeBruijn dbt}
                                          <li>#{displayDBIsRedex (dbIsRedex dbt)}
                                          <li>#{displayDBReductionResult (dbParallelOneStep dbt)}
-                                         <li>Normal form: #{displayDeBruijn (normaliseDB dbt)}
-
+                                         <li>Normal form: #{displayDeBruijn normalDB}
+                                         $maybe t <- normaltm
+                                           <li>Or: #{displayTerm t}
+                                         $nothing
+                                           <li>Couldn't namify: that's a big term!
+                                         <li>Printed: #{displayTerm tm}
                              |]
                 in  object [ "feedback" .= toJSON ("Good term!" :: Text)
                            , "termInfo" .= (toJSON . renderHtml $ tminfo)

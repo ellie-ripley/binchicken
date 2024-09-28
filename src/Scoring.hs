@@ -60,6 +60,10 @@ boolToCorrect :: Bool -> Correct
 boolToCorrect True  = Correct
 boolToCorrect False = Incorrect
 
+correctToBool :: Correct -> Bool
+correctToBool Correct = True
+correctToBool Incorrect = False
+
 -- | Progress before anything is done
 zeroProgress :: Progress
 zeroProgress = Progress 0 0 0

@@ -1,0 +1,25 @@
+<div .container>
+    <div .row>
+        <h2>Alpha equivalence
+    <div .row>
+        <div .col-lg-12>
+            <p>Here is a term in the lambda calculus: <code>#{displayTerm targetTerm}</code>. Input a term that is alpha-equivalent to this term, and that uses no bound variables that are bound in this term:
+            <form>
+                <div .mb-3>
+                    <label .form-label for="#{termId}">Your term:
+                    <input ##{termId} .form-control type="text">
+    <div .row>
+        <div .col-4 ##{buttonDivId}>
+            <button .btn.btn-primary ##{buttonSubmitId}>Submit term
+    <div .row>
+        <div .col-lg-12>
+            <div ##{feedbackId}>
+    <div .row>
+        <h5>How to enter a term:
+    <div .row>
+        <div .col-lg-12>
+          <ul>
+            <li>Use single lowercase letters, such as <code>f, g, x, y, z</code>, for variables.
+            <li>For applications, write terms next to each other; so for example <code>x y</code> is <code>x</code> applied to <code>y</code>.
+            <li>For abstractions, you can use <code>\</code> as your lambda, so for example <code >\x.x</code> is the function that returns its input unmodified. Or, if you prefer, you can <button class="btn btn-primary" id="#{lambdaButt}">click this button</button> to copy a lambda to your clipboard, and then write <code>λx.x</code> instead. Binchicken doesn't care whether you use <code>\</code> or <code>λ</code>; it's your call!
+            <li>Finally, if you run into bugs or difficulties, please let me know! Screenshots are very much appreciated.
