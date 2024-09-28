@@ -233,7 +233,6 @@ instance Applicative ReductionResult where
   (Reduced f) <*> (Reduced x) = Reduced (f x)
 
 -- | Does one step of reduction at each outermost redex, in parallel
--- TODO: This is incorrect! It reduces \((\1)x) to \1, when it should reduce to \0
 dbParallelOneStep :: DeBruijn -> ReductionResult DeBruijn
 dbParallelOneStep db =
   case db of
@@ -245,8 +244,9 @@ dbParallelOneStep db =
         RedexReduced a -> Reduced a
         NotARedex -> DBApp <$> dbParallelOneStep dl <*> dbParallelOneStep dr
 
-normaliseDB :: DeBruijn -> DeBruijn
-normaliseDB db =
+normaliseDB :: Int -> DeBruijn -> DeBruijn
+normaliseDB 0 db = db
+normaliseDB n db =
   case dbParallelOneStep db of
     Normal d -> d
-    Reduced d -> normaliseDB d
+    Reduced d -> normaliseDB (n - 1) d

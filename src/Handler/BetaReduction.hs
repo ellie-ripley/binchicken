@@ -65,23 +65,29 @@ data BRAttempt =
     deriving (Generic, ToJSON, FromJSON)
 
 
--- | want decodeAE (encodeAE tm) == Just tm, for every term
+-- | want decodeBR (encodeBR tm) == Just tm, for every term
 decodeBR :: Text -> Maybe Term
 decodeBR tx = decodeStrict $ encodeUtf8 tx
 
 encodeBR :: Term -> Text
 encodeBR tm = decodeUtf8 . toStrict $ encode tm
 
+randomNormalisingTermIO :: IO Term
+randomNormalisingTermIO = do
+  leftTerm  <- randomLambdaTermIO (lvarList ['t'..'z']) (0,2)
+  rightTerm <- randomLambdaTermIO (lvarList ['t'..'z']) (0,2)
+  let candidate = TApp leftTerm rightTerm
+  if normaliseDB 100 (deBruijn candidate) == normaliseDB 101 (deBruijn candidate)
+  then return candidate
+  else randomNormalisingTermIO
 
 getBetaReductionR :: Handler Html
 getBetaReductionR = do
   let (buttonDivId, buttonSubmitId, lambdaButt, normalButt) = buttonIds
       (termId, feedbackId) = otherIds
       ajaxRoute = BetaReductionR
-  leftTerm <- liftIO $ randomLambdaTermIO (lvarList ['t'..'z']) (0,2)
-  rightTerm <- liftIO $ randomLambdaTermIO (lvarList ['t'..'z']) (0,2)
-  let targetTerm = TApp leftTerm rightTerm
-      ex = Exercise { exerciseExerciseType = BetaReduction
+  targetTerm <- liftIO randomNormalisingTermIO
+  let ex = Exercise { exerciseExerciseType = BetaReduction
                     , exerciseExerciseContent = encodeBR targetTerm
                     }
   exid <- runDB $ insert ex
@@ -125,11 +131,11 @@ markBR given submitted =
   case parseTerm submitted of
     Left _ -> BRNotATerm
     Right tm ->
-      let targ = normaliseDB (deBruijn given)
+      let targ = normaliseDB 1000 (deBruijn given)
           subm = deBruijn tm
       in if targ == subm
          then BRCorrect
-         else if targ == normaliseDB subm
+         else if targ == normaliseDB 1000 subm
               then BRNotNormal
               else BRCantReach
 

@@ -79,7 +79,7 @@ postLambdaPlaygroundR = do
               Right tm ->
                 let dbt = deBruijn tm
                     aeq = namify (lvarList ['a'..'z']) dbt
-                    normalDB = normaliseDB dbt
+                    normalDB = normaliseDB 1000 dbt
                     normaltm = namify (lvarList ['a'..'z']) normalDB
                     tminfo = [shamlet|<ul>
                                          <li>With all parentheses: #{displayTermAllPars tm}
