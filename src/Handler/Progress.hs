@@ -48,13 +48,14 @@ import qualified Data.Map as M
 import Database.Esqueleto.Legacy
 
 import Scoring
-  ( Progress(..)
+  ( Milestone(..)
+  , Progress(..)
   , Results(..)
   , Summary(..)
   , SummaryRow(..)
+  , calcMilestone
   , calculateSummaryRow
   , displayPoints
-  , displayPointsEarned
   , pointsEarned
   , tally
   , totalPoints

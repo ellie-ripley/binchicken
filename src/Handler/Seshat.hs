@@ -22,6 +22,7 @@ import qualified Data.Map as M
 import Settings.Binchicken (activeExerciseTypes)
 import Scoring
   ( calculateSummary
+  , displayPoints
   , exScore
   , tally
   , totalPoints

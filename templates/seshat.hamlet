@@ -19,7 +19,7 @@
                         <td>#{displayUserId i}
                         <td>#{userEmail u}
                         $maybe src <- M.lookup i (unSummary summ)
-                            <td>#{show (totalPoints src)}
+                            <td>#{displayPoints (totalPoints src)}
                             $forall et <- exts
                                 <td>#{displayScore (exScore src et)}
                         $nothing

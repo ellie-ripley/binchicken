@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 
@@ -153,24 +154,29 @@ tally usrs ((Entity _ sc):xs) =
 
 
 -- | Functions for taking Progress and moving to actual scores
+data Milestone
+  = NoMilestone
+  | SmallTotal
+  | LargeTotal
+  | Streak
+  deriving (Eq, Ord, Show)
 
-calcPoints :: ExerciseTargets -> Progress -> Int
-calcPoints (ExerciseTargets tot1 tot2 str) (Progress _ bes tot)
-  | bes >= str  = 3
-  | tot >= tot2 = 2
-  | tot >= tot1 = 1
-  | otherwise   = 0
+calcMilestone :: ExerciseTargets -> Progress -> Milestone
+calcMilestone (ExerciseTargets tot1 tot2 str) (Progress _ bes tot)
+  | bes >= str  = Streak
+  | tot >= tot2 = LargeTotal
+  | tot >= tot1 = SmallTotal
+  | otherwise   = NoMilestone
+
+calcPoints :: Milestone -> Int
+calcPoints = \case
+  NoMilestone -> 0
+  SmallTotal  -> 2
+  LargeTotal  -> 3
+  Streak      -> 4
 
 pointsEarned :: ExerciseType -> Progress -> Int
-pointsEarned = calcPoints . targets
-
--- | Adds a purely visual "1/3"
-displayPointsEarned :: ExerciseType -> Progress -> Text
-displayPointsEarned et p =
-  let pe = pointsEarned et p
-  in  if pe == 0
-      then "0"
-      else (pack $ show pe) <> ".33"
+pointsEarned et = calcPoints . calcMilestone (targets et)
 
 calculateResults :: Results Progress -> Results Int
 calculateResults = Results . M.mapWithKey pointsEarned . unResults
@@ -184,22 +190,12 @@ calculateSummary = Summary . fmap calculateSummaryRow . unSummary
 exScore :: SummaryRow Int -> ExerciseType -> Maybe Int
 exScore (SummaryRow _ _ res) et = M.lookup et (unResults res)
 
--- | totals points---every point is worth 1,
--- | plus every exercise type on which some point is scored is worth 1/3
 totalPoints :: SummaryRow Int -> Rational
 totalPoints sr = foldr adder 0 (unResults $ srResults sr)
   where
-    adder 0 a = a
-    adder n a = a + (fromIntegral n) + (1 % 3)
+    adder n a = a + (fromIntegral n)
 
 displayPoints :: Rational -> Text
 displayPoints r
   | denominator r == 1 = pack . show $ numerator r
-  | denominator r == 3 =
-      let (x, y) = (numerator r) `divMod` 3
-      in  case y of
-            0 -> pack $ show x
-            1 -> (pack $ show x) <> ".33"
-            2 -> (pack $ show x) <> ".67"
-            _ -> error "MATH IS BROKEN"
   | otherwise = "There's been a problem in the scoring; please report this error!"

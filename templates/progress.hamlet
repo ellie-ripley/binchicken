@@ -19,7 +19,7 @@
                     <a .col-6.ex-link href="@{exerciseRoute et}">
                         #{fromEnum et}. #{prettyExerciseName et}
                     $maybe prog <- M.lookup et (unResults $ srResults sr)
-                      $with points <- pointsEarned et prog
+                      $with mile <- calcMilestone (targets et) prog
                         <div .row>
                           <div .col-md-4>
                               Total correct: #{totalCorrect prog}
@@ -32,29 +32,29 @@
                           <div .col-md-2>
                               <h6>Level 1:
                               <p .progress-amount>#{totalMilestone1 $ targs} correct
-                              <img .progress-badge :points >= 1:.complete src=@{StaticR img_ibis_icon_png}>
-                              $if points >= 1
+                              <img .progress-badge :mile >= SmallTotal:.complete src=@{StaticR img_ibis_icon_png}>
+                              $if mile >= SmallTotal
                                   <p>Got it!
                               $else
                                   <p>Not yet!
                           <div .col-md-2>
                               <h6>Level 2:
                               <p .progress-amount>#{totalMilestone2 $ targs} correct
-                              <img .progress-badge :points >= 2:.complete src=@{StaticR img_ibis_icon_png}>
-                              $if points >= 2
+                              <img .progress-badge :mile >= LargeTotal:.complete src=@{StaticR img_ibis_icon_png}>
+                              $if mile >= LargeTotal
                                   <p>Got it!
                               $else
                                   <p>Not yet!
                           <div .col-md-2>
                               <h6>Level 3:
                               <p .progress-amount>streak of #{streakMilestone1 $ targs}
-                              <img .progress-badge :points >= 3:.complete src=@{StaticR img_ibis_icon_png}>
-                              $if points >= 3
+                              <img .progress-badge :mile >= Streak:.complete src=@{StaticR img_ibis_icon_png}>
+                              $if mile >= Streak
                                   <p>Got it!
                               $else
                                   <p>Not yet!
                           <div .col-md-2>
                               <h6>Points earned:
-                              <h4>#{displayPointsEarned et prog}
+                              <h4>#{show( pointsEarned et prog)}
                     $nothing
                         <p>Trouble reading streaks! (This is a bug in the site!)
