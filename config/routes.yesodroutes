@@ -34,3 +34,4 @@
 /seshat SeshatR GET
 /proof-playground ProofPlaygroundR GET POST
 /lambda-playground LambdaPlaygroundR GET POST
+/time-machine TimeMachineR GET POST

@@ -31,3 +31,9 @@ Score
     numCorrect Int
     bestStreak Int
     currentStreak Int
+
+TimeWordle
+    userId UserId
+    logician Logician
+    guess Int
+    guessedAt UTCTime Maybe default=CURRENT_TIMESTAMP

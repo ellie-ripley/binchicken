@@ -1,0 +1,42 @@
+var dropdown;
+dropdown = document.querySelectorAll("select")[0];
+
+  function filter () {
+    var ind;
+    ind = dropdown.value;
+    console.log(ind);
+    var nodeList;
+    switch(ind) {
+        case "1":
+            nodeList = document.querySelectorAll(".Euclid");
+            console.log(nodeList.length);
+            break;
+        case "2":
+            nodeList = document.querySelectorAll(".LaddF");
+            console.log(nodeList.length);
+            break;
+        case "3":
+            nodeList = document.querySelectorAll(".Luka");
+            console.log(nodeList.length);
+            break;
+        case "4":
+            nodeList = document.querySelectorAll(".Plumwood");
+            console.log(nodeList.length);
+            break;
+        default:
+            nodeList = document.querySelectorAll("tr");
+            console.log(nodeList.length);
+    }
+    var hideList;
+    console.log(nodeList.length);
+    hideList = document.querySelectorAll("tr");
+    for (let i = 0; i < hideList.length; i++) {
+        hideList[i].style.display = "none";
+    }
+    for (let j = 0; j < nodeList.length; j++) {
+        nodeList[j].style.display = "block";
+    }
+  };
+
+dropdown.onchange = function () {filter();};
+document.addEventListener("DOMContentLoaded", function () {filter();});
