@@ -455,6 +455,7 @@ isAdmin = do
         Nothing -> return unauth
         Just us
           | userEmail us == "davewripley@gmail.com" -> return Authorized
+          | userEmail us == "ripley@negation.rocks" -> return Authorized
           | otherwise -> return unauth
 
 instance YesodAuthPersist BinChicken
