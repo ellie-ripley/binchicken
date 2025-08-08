@@ -16,8 +16,8 @@ listeners:
     # HTTPS
     - host: "*4"
       #port: 443
-      key: key.pem
-      certificate: certificate.pem
+      key: /etc/letsencrypt/live/binchicken.one/privkey.pem
+      certificate: /etc/letsencrypt/live/binchicken.one/fullchain.pem
       session: true
 
 # User to run applications as
