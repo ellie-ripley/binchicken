@@ -34,5 +34,5 @@ database:
   poolsize: "_env:YESOD_SQLITE_POOLSIZE:10"
 
 copyright: ""
-repo-link: "https://bitbucket.org/davewripley/binchicken"
+repo-link: "https://github.com/ellie-ripley/binchicken"
 #analytics: UA-YOURCODE
