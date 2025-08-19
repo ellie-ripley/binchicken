@@ -6,6 +6,8 @@ After=network.service
 [Service]
 Type=simple
 ExecStart=/opt/keter/bin/keter /opt/keter/etc/keter-config.yaml
+Restart=on-failure
+RestartSec=1s
 
 [Install]
 WantedBy=multi-user.target
