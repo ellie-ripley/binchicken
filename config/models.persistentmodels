@@ -32,8 +32,9 @@ Score
     bestStreak Int
     currentStreak Int
 
-TimeWordle
+Grouping
     userId UserId
-    logician Logician
-    guess Int
-    guessedAt UTCTime Maybe default=CURRENT_TIMESTAMP
+    year Int Maybe
+    section Int Maybe
+    escapeGroup Int Maybe
+    murderGroup Int Maybe
