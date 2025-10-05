@@ -1,0 +1,30 @@
+function tickedBoxes() {
+  const checkedBoxArr = Array.from(document.querySelectorAll('input[name=#{rawJS updateCheck}]:checked'));
+  const checkedIds = Array.prototype.map.call(checkedBoxArr, el => el.id);
+  return checkedIds;
+}
+
+function reportAnswer(data) {
+  document.getElementById("#{rawJS updateMsgId}").innerHTML = "Success: " + data;
+}
+
+function logError(data) {
+  console.log("Error: " + data)
+}
+
+$(function() {
+  $("##{rawJS submitButtonId }").click(function() {
+    $.ajax({
+      url: '@{SeshatR}',
+      type: 'POST',
+      contentType: "application/json",
+      data: JSON.stringify({
+        updateYear: document.getElementById("#{rawJS yearInputId}").value,
+        updateSection: document.getElementById("#{rawJS sectionInputId}").value,
+        updateUsers: tickedBoxes()
+      }),
+      success: reportAnswer,
+      error: logError
+    });
+  });
+})

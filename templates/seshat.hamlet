@@ -4,12 +4,23 @@
 
 <div .container>
     <div .row>
-        <form method=post action=@{SeshatR} enctype=#{enctype}>
-            ^{gFormWidget}
-            <button>Submit
+        <div .col-lg-2>
+                <select class="form-select" name="year" id=#{yearInputId}>
+                    <option value="*">Choose a year
+                    $forall ty <- yearList
+                        <option value=#{show $ snd ty}>#{fst ty}
+        <div .col-lg-2>
+                <div class="input-group mb-3">
+                    <span class="input-group-text">Section:
+                    <input type="text" class="form-control" id=#{sectionInputId}>
+        <div .col-lg-2>
+            <button type="button" class="btn btn-primary" id=#{submitButtonId}>Update all checked users
     <div .row>
         <div .col-lg-12>
-            <table>
+            <p id=#{updateMsgId}>
+    <div .row>
+        <div .col-lg-12>
+            <table class="table table-striped table-hover">
                 <thead>
                     <tr>
                         <th>ID
@@ -34,4 +45,4 @@
                             <td>Error 23
                         <td>#{displayYear $ fst myms}
                         <td>#{displaySection $ snd myms}
-                        <td><input id=#{updateTag <> displayUserId i} type="checkbox">
+                        <td><input name=#{updateCheck} id=#{updateTag <> displayUserId i} type="checkbox">
