@@ -102,7 +102,7 @@ import Handler.ProveArgument ( getProveArgumentR, postProveArgumentR )
 import Handler.AlphaEquivalence ( getAlphaEquivalenceR, postAlphaEquivalenceR )
 import Handler.BetaReduction ( getBetaReductionR, postBetaReductionR )
 import Handler.Progress ( getProgressR )
-import Handler.Seshat ( getSeshatR )
+import Handler.Seshat ( getSeshatR, postSeshatR )
 import Handler.ProofPlayground ( getProofPlaygroundR, postProofPlaygroundR )
 import Handler.LambdaPlayground ( getLambdaPlaygroundR, postLambdaPlaygroundR )
 

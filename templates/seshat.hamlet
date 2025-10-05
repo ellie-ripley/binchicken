@@ -4,6 +4,10 @@
 
 <div .container>
     <div .row>
+        <form method=post action=@{SeshatR} enctype=#{enctype}>
+            ^{gFormWidget}
+            <button>Submit
+    <div .row>
         <div .col-lg-12>
             <table>
                 <thead>
@@ -13,9 +17,13 @@
                         <th>Total
                         $forall et <- exts
                             <th>#{show (fromEnum et)}
+                        <th>Year
+                        <th>Section
+                        <th>Set Year/Section?
                 <tbody>
                 $forall (Entity i u) <- usrs
-                    <tr>
+                    $with myms <- grYearSection groups i
+                      <tr>
                         <td>#{displayUserId i}
                         <td>#{userEmail u}
                         $maybe src <- M.lookup i (unSummary summ)
@@ -24,3 +32,6 @@
                                 <td>#{displayScore (exScore src et)}
                         $nothing
                             <td>Error 23
+                        <td>#{displayYear $ fst myms}
+                        <td>#{displaySection $ snd myms}
+                        <td><input id=#{updateTag <> displayUserId i} type="checkbox">

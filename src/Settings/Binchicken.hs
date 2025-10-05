@@ -1,11 +1,20 @@
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE LambdaCase #-}
 
 module Settings.Binchicken where
+
+import Data.Aeson (ToJSON, FromJSON)
+import GHC.Generics (Generic)
 
 import ExerciseType (ExerciseType(..), ExerciseTargets(..))
 import Logic.Formulas (Atomic(..), NullaryConnective(..), UnaryConnective(..), BinaryConnective(..), Connective(..), atomic)
 import Foundation (Route(..), BinChicken)
 
+
+data Year = Y2025 | Y2026
+  deriving(Eq, Enum, Bounded, Ord, Show, Generic)
+instance ToJSON Year
+instance FromJSON Year
 
 -- | Settings for rolling a random formula
 -- | May cause errors if things aren't sensible

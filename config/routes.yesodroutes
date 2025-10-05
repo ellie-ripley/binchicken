@@ -31,6 +31,6 @@
 /beta-reduction BetaReductionR GET POST
 
 -- Other pages
-/seshat SeshatR GET
+/seshat SeshatR GET POST
 /proof-playground ProofPlaygroundR GET POST
 /lambda-playground LambdaPlaygroundR GET POST
