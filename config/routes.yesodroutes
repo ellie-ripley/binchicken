@@ -34,3 +34,4 @@
 /seshat SeshatR GET POST
 /proof-playground ProofPlaygroundR GET POST
 /lambda-playground LambdaPlaygroundR GET POST
+/murder-mystery MurderR GET POST
