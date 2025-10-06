@@ -14,6 +14,14 @@
                     <span class="input-group-text">Section:
                     <input type="text" class="form-control" id=#{sectionInputId}>
         <div .col-lg-2>
+            <div class="input-group mb-3">
+                <span class="input-group-text">Escape:
+                <input type="text" class="form-control" id=#{escapeGrpId}>
+        <div .col-lg-2>
+            <div class="input-group mb-3">
+                <span class="input-group-text">Murder:
+                <input type="text" class="form-control" id=#{murderGrpId}>
+        <div .col-lg-2>
             <button type="button" class="btn btn-primary" id=#{submitButtonId}>Update all checked users
     <div .row>
         <div .col-lg-12>
@@ -30,10 +38,12 @@
                             <th>#{show (fromEnum et)}
                         <th>Year
                         <th>Section
-                        <th>Set Year/Section?
+                        <th>Escape
+                        <th>Murder
+                        <th>Set groups?
                 <tbody>
                 $forall (Entity i u) <- usrs
-                    $with myms <- grYearSection groups i
+                    $with mymsmemm <- grYSEM groups i
                       <tr>
                         <td>#{displayUserId i}
                         <td>#{userEmail u}
@@ -43,6 +53,8 @@
                                 <td>#{displayScore (exScore src et)}
                         $nothing
                             <td>Error 23
-                        <td>#{displayYear $ fst myms}
-                        <td>#{displaySection $ snd myms}
+                        <td>#{displayYear $ fst4 mymsmemm}
+                        <td>#{displaySection $ snd4 mymsmemm}
+                        <td>#{displayEscape $ thd4 mymsmemm}
+                        <td>#{displayMurder $ fth4 mymsmemm}
                         <td><input name=#{updateCheck} id=#{updateTag <> displayUserId i} type="checkbox">

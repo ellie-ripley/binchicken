@@ -19,9 +19,11 @@ $(function() {
       type: 'POST',
       contentType: "application/json",
       data: JSON.stringify({
-        updateYear: document.getElementById("#{rawJS yearInputId}").value,
-        updateSection: document.getElementById("#{rawJS sectionInputId}").value,
-        updateUsers: tickedBoxes()
+        #{rawJS uy}: document.getElementById("#{rawJS yearInputId}").value,
+        #{rawJS us}: document.getElementById("#{rawJS sectionInputId}").value,
+        #{rawJS ue}: document.getElementById("#{rawJS escapeGrpId}").value,
+        #{rawJS um}: document.getElementById("#{rawJS murderGrpId}").value,
+        #{rawJS uu}: tickedBoxes()
       }),
       success: reportAnswer,
       error: logError
