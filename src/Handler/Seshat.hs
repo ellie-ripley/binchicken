@@ -19,6 +19,7 @@ import Import.NoFoundation ( Grouping(..)
                            , (&&&)
                            , (==.)
                            , insert
+                           , liftIO
                            , pack
                            , parseCheckJsonBody
                            , replace
@@ -37,7 +38,7 @@ import Text.Julius (RawJS (..))
 import Data.Aeson (Result(..), Value(..), (.:))
 import Data.Aeson.Types (parseMaybe)
 import Data.Text (stripPrefix)
-import Text.Read (readMaybe)
+import Text.Read (readMaybe, Lexeme (String))
 
 import Control.Monad (join)
 import qualified Data.List as L
@@ -143,6 +144,7 @@ updateGrouping tx my ms =
            currGrp <- runDB $ selectFirst [GroupingUserId ==. k] []
            case currGrp of
              Nothing -> do
+               liftIO $ putStrLn "No existing grouping found"
                let newGrp = Grouping { groupingUserId = k
                                      , groupingYear = my
                                      , groupingSection = ms
@@ -153,6 +155,7 @@ updateGrouping tx my ms =
                return ()
              Just (Entity gid g) ->
                do
+                 liftIO $ putStrLn "Grouping found"
                  let newGrp = updateGroup g my ms
                  _ <- runDB $ replace gid newGrp
                  return ()
@@ -164,13 +167,18 @@ postSeshatR = do
       Error s -> returnJson s -- Did we get a parseable response?
       Success requestJson -> case requestJson of
         Object hm -> -- is the response an Object?
-          let (myear :: Maybe Int) = parseMaybe id (hm .: "updateYear")
-              (msec :: Maybe Int) = parseMaybe id (hm .: "updateSection")
+          let (myear :: Maybe String) = parseMaybe id (hm .: "updateYear")
+              (msec :: Maybe String) = parseMaybe id (hm .: "updateSection")
               (musers :: Maybe [Text]) = parseMaybe id (hm .: "updateUsers")
               usrs = case musers of
                        Nothing -> []
                        Just us -> us
           in do
-            mapM_ (\t -> updateGrouping t myear msec) usrs
+            mapM_ (\t -> do
+                           updateGrouping t (myear >>= readMaybe) (msec >>= readMaybe)
+                           case (parseUserUpdate t) of
+                             Nothing -> liftIO . putStrLn . unpack $ ("Couldn't parse " <> t)
+                             Just k -> liftIO . putStrLn . unpack $ ("Parsed " <> (displayUserId k))
+                  ) usrs
             returnJson ("Year: " <> (show myear) <> " Section: " <> (show msec) <> " Users: " <> (show musers))
         _ -> returnJson ("Something went wrong!" :: Text) -- the response was JSON but not an Object
