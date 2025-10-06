@@ -1,0 +1,16 @@
+<div .container>
+    ^{loginNotifyW}
+    <div .row>
+        <h2>Murder mystery
+    <div .row>
+        <h4>YOU WILL LOSE POINTS for an incorrect entry.
+        <p>When you are ready, enter your conclusion below:
+    <div .row>
+        <div .col-lg-12>
+            <form method=post action=@{MurderR} enctype=#{enctype}>
+                ^{widg}
+                <button .btn.btn-primary>Submit
+    <div .row>
+        <div .col-lg-12>
+            <p>Correct parts have a green background:
+            ^{history}

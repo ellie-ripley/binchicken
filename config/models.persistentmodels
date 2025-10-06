@@ -38,3 +38,9 @@ Grouping
     section Int Maybe
     escapeGroup Int Maybe
     murderGroup Int Maybe
+
+MurderMystery json
+    userId UserId
+    guess Text Maybe
+    isCorrect Bool
+    submittedAt UTCTime Maybe default=CURRENT_TIMESTAMP
