@@ -17,6 +17,7 @@ import Import.NoFoundation ( AForm
                            , Enum
                            , Eq(..)
                            , FormResult(..)
+                           , Grouping(..)
                            , Html
                            , Maybe(..)
                            , MForm
@@ -24,6 +25,7 @@ import Import.NoFoundation ( AForm
                            , IO
                            , Ord
                            , Read
+                           , SelectOpt(..)
                            , Show(..)
                            , Text
                            , ($)
@@ -34,12 +36,14 @@ import Import.NoFoundation ( AForm
                            , (<*>)
                            , (&&&)
                            , (==.)
+                           , (<-.)
                            , areq
                            , defaultLayout
                            , error
                            , generateFormPost
                            , getCurrentTime
                            , getEntity
+                           , hamlet
                            , id
                            , insertEntity
                            , liftIO
@@ -54,12 +58,13 @@ import Import.NoFoundation ( AForm
                            , runFormPost
                            , selectFirst
                            , selectFieldList
+                           , selectList
                            , setTitle
                            , toStrict
                            , toWidget
                            , undefined
                            , whamlet
-                           , widgetFile
+                           , widgetFile, Grouping (groupingMurderGroup)
                            )
 import Model (EntityField(..))
 
@@ -70,6 +75,7 @@ import Data.Aeson.Types (parseMaybe)
 import Data.Maybe (catMaybes)
 import Data.Text.Encoding (decodeUtf8, encodeUtf8)
 import GHC.Generics (Generic)
+import Text.Blaze.Html4.FrameSet.Attributes (name)
 
 data Suspect =
     Butler
@@ -163,34 +169,47 @@ correctClass = "correct"
 incorrectClass :: Text
 incorrectClass = "incorrect"
 
+tableClassNames :: (Text, Text, Text)
+tableClassNames = ("suspect-name", "weapon-verb", "location-name")
+
 attemptCSSClasses :: MurderGuess -> (Bool, Bool, Bool) ->  (Text, Text, Text)
 attemptCSSClasses (MurderGuess sus wea loc) (cs, cw, cl) = (csus, cwea, cloc)
   where
+    (snc, wvc, lnc) = tableClassNames
     tshow :: Show a => a -> Text
     tshow = pack . show
     go t b = if b then t <> " " <> correctClass
                   else t <> " " <> incorrectClass
-    csus = go ("suspect-name " <> tshow sus) cs
-    cwea = go ("weapon-verb " <> tshow wea) cw
-    cloc = go ("location-name " <> tshow loc) cl
+    csus = go (snc <> " " <> tshow sus) cs
+    cwea = go (wvc <> " " <> tshow wea) cw
+    cloc = go (lnc <> " " <> tshow loc) cl
 
 
 attemptRow :: MurderGuess -> MurderGuess -> Widget
 attemptRow mg@(MurderGuess sus wea loc) (MurderGuess as aw al) = do
   let isCorrect = (sus == as, wea == aw, loc == al)
+      (snc, wvc, lnc) = tableClassNames
       (csus, cwea, cloc) = attemptCSSClasses mg isCorrect
   [whamlet|<tr>
             <td class=#{csus}>#{suspectName sus}
             <td class=#{cwea}>#{weaponVerb wea}
-            <td class=#{cloc}>#{locationName loc}
+            <td class=#{cloc}>in the #{locationName loc}
           |]
   toWidget
     [lucius| td { font-size : 2rem;
                   border-radius: 5px;
                   padding: 5px;
                 }
-             .#{correctClass} { background-color: green; }
-             .#{incorrectClass} { background-color: red; }
+             .#{snc} { text-align: right; }
+             .#{wvc} { text-align: center; }
+             .#{lnc} { text-align: left; }
+             .#{correctClass} { background-color: green;
+                                color: white;
+                              }
+
+             .#{incorrectClass} { background-color: red;
+                                  color: white;
+                                }
            |]
 
 attemptTable :: [Entity MurderMystery] -> MurderGuess -> Widget
@@ -230,10 +249,27 @@ getMurderR = do
           case muser of
             Nothing -> error "Logged in as a nonexistent user? This is a bug in the site!"
             Just _ -> do
-              let history = attemptTable [] solution
-              defaultLayout $ do
-                setTitle "Murder Mystery"
-                $(widgetFile "murder")
+              mgrp <- runDB $ selectFirst [GroupingUserId ==. uid] []
+              case mgrp of
+                Nothing -> defaultLayout $ do
+                             setTitle "Murder Mystery Missing Grouping"
+                             toWidget [hamlet|<p>You cannot participate until you have been assigned a group.
+                                             |]
+                Just (Entity _ grping) ->
+                  case (groupingMurderGroup grping) of
+                    Nothing -> defaultLayout $ do
+                             setTitle "Murder Mystery Missing Group"
+                             toWidget [hamlet|<p>You cannot participate until you have been assigned a group.
+                                             |]
+                    Just groupNum -> do
+                      groupMems <- runDB $ selectList [GroupingMurderGroup ==. Just groupNum] []
+                      let groupMemIds = map (\(Entity _ g) -> groupingUserId g) groupMems
+                      pastGuesses <- runDB $ selectList [MurderMysteryUserId <-. groupMemIds ]
+                                                   [Desc MurderMysterySubmittedAt]
+                      let history = attemptTable pastGuesses solution
+                      defaultLayout $ do
+                        setTitle "Murder Mystery"
+                        $(widgetFile "murder")
 
 
 postMurderR :: Handler Html
@@ -250,16 +286,33 @@ postMurderR = do
           maybeCurrentUserId <- maybeAuthId
           case maybeCurrentUserId of
             Just uid -> do
-              now <- liftIO getCurrentTime
-              let corr = mg == solution
-                  guess = MurderMystery { murderMysteryUserId = uid
-                                    , murderMysterySubmittedAt = Just now
-                                    , murderMysteryGuess = Just $ encodeMG mg
-                                    , murderMysteryIsCorrect = corr
-                                    }
-              _ <- runDB $ insertEntity guess
-              let history = attemptTable [] solution
-              defaultLayout $ do
-                setTitle "Murder Mystery"
-                $(widgetFile "murder")
+              mgrp <- runDB $ selectFirst [GroupingUserId ==. uid] []
+              case mgrp of
+                Nothing -> defaultLayout $ do
+                             setTitle "Murder Mystery Missing Grouping"
+                             toWidget [hamlet|<p>You cannot participate until you have been assigned a group.
+                                             |]
+                Just (Entity _ grping) -> do
+                  case (groupingMurderGroup grping) of
+                    Nothing -> defaultLayout $ do
+                        setTitle "Murder Mystery Missing Group"
+                        toWidget [hamlet|<p>You cannot participate until you have been assigned a group.
+                                           |]
+                    Just groupNum -> do
+                      now <- liftIO getCurrentTime
+                      let corr = mg == solution
+                          guess = MurderMystery { murderMysteryUserId = uid
+                                                , murderMysterySubmittedAt = Just now
+                                                , murderMysteryGuess = Just $ encodeMG mg
+                                                , murderMysteryIsCorrect = corr
+                                                }
+                      _ <- runDB $ insertEntity guess
+                      groupMems <- runDB $ selectList [GroupingMurderGroup ==. Just groupNum] []
+                      let groupMemIds = map (\(Entity _ g) -> groupingUserId g) groupMems
+                      pastGuesses <- runDB $ selectList [MurderMysteryUserId <-. groupMemIds ]
+                                                   [Desc MurderMysterySubmittedAt]
+                      let history = attemptTable pastGuesses solution
+                      defaultLayout $ do
+                        setTitle "Murder Mystery"
+                        $(widgetFile "murder")
             Nothing -> redirect HomeR
