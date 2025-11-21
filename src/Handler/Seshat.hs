@@ -6,25 +6,35 @@ module Handler.Seshat where
 
 import Foundation ( Handler
                   , Route(..)
+                  , Widget
                   )
-import Import.NoFoundation ( Grouping(..)
+import Import.NoFoundation ( AForm
+                           , Grouping(..)
                            , EntityField(..)
+                           , FormResult(..)
                            , Html
                            , Int64
                            , Key(..)
+                           , MForm
                            , Score(..)
                            , Text
                            , User(..)
                            , Yesod(..)
                            , (&&&)
                            , (==.)
+                           , areq
+                           , checkBoxField
+                           , generateFormPost
                            , insert
                            , liftIO
                            , pack
                            , parseCheckJsonBody
+                           , redirect
+                           , renderTable
                            , replace
                            , returnJson
                            , runDB
+                           , runFormPost
                            , selectFirst
                            , selectList
                            , setTitle
@@ -32,13 +42,16 @@ import Import.NoFoundation ( Grouping(..)
                            , widgetFile
                            )
 import Database.Esqueleto.Legacy
-    ( Entity(Entity), PersistEntity(Key), BackendKey(unSqlBackendKey, SqlBackendKey) )
+    ( Entity(Entity), BackendKey(unSqlBackendKey, SqlBackendKey) )
 
 import Text.Julius (RawJS (..))
 import Data.Aeson (Result(..), Value(..), (.:))
 import Data.Aeson.Types (parseMaybe)
+import qualified Data.ByteString.Lazy as LB
+import qualified Data.Csv as C
 import Data.Text (stripPrefix)
-import Text.Read (readMaybe, Lexeme (String))
+import Data.Text.Encoding (decodeUtf8)
+import Text.Read (readMaybe)
 
 import Control.Monad (join)
 import qualified Data.List as L
@@ -51,7 +64,9 @@ import Scoring
   , exScore
   , tally
   , totalPoints
+  , Progress(..)
   , Summary(..)
+  , SummaryRow(..)
   )
 
 updateTag :: Text
@@ -77,13 +92,13 @@ alignGroupings :: [Entity User]
                -> [Entity Grouping]
                -> [(Key User, Maybe Grouping)]
 alignGroupings [] _ = []
-alignGroupings ((Entity i u) : eus) egs = (go i egs) : alignGroupings eus egs
+alignGroupings ((Entity i _) : eus) egs = (go i egs) : alignGroupings eus egs
   where
     go :: Key User -> [Entity Grouping] -> (Key User, Maybe Grouping)
-    go i [] = (i, Nothing)
-    go i ((Entity _ gg) : egs)
-      | i == groupingUserId gg = (i, Just gg)
-      | otherwise = go i egs
+    go ku [] = (ku, Nothing)
+    go ku ((Entity _ gg) : eggs)
+      | ku == groupingUserId gg = (ku, Just gg)
+      | otherwise = go ku eggs
 
 grYearSection:: [(Key User, Maybe Grouping)] -> Key User -> (Maybe Int, Maybe Int)
 grYearSection grs i =
@@ -97,8 +112,8 @@ displayScore =
   \case Nothing -> "Missing"
         Just i  -> show i
 
-seshatFormIds :: (Text, Text, Text, Text, Text)
-seshatFormIds = ("yearInput", "sectionInput", "submitButton", "updateChecked", "updateMsg")
+seshatFormIds :: (Text, Text, Text, Text, Text, Text)
+seshatFormIds = ("yearInput", "sectionInput", "submitButton", "updateChecked", "updateMsg", "csv")
 
 getSeshatR :: Handler Html
 getSeshatR = do
@@ -110,7 +125,8 @@ getSeshatR = do
       groups = alignGroupings usrs grs
       yearList :: [(Text, Int)]
       yearList = map (pack . show &&& id) [2025, 2026]
-      (yearInputId, sectionInputId, submitButtonId, updateCheck, updateMsgId) = seshatFormIds
+      (yearInputId, sectionInputId, submitButtonId, updateCheck, updateMsgId, csv) = seshatFormIds
+  (csvWidget, enctype) <- generateFormPost csvForm
   defaultLayout $ do
     setTitle "Seshat"
     $(widgetFile "seshat")
@@ -181,4 +197,28 @@ postSeshatR = do
                              Just k -> liftIO . putStrLn . unpack $ ("Parsed " <> (displayUserId k))
                   ) usrs
             returnJson ("Year: " <> (show myear) <> " Section: " <> (show msec) <> " Users: " <> (show musers))
-        _ -> returnJson ("Something went wrong!" :: Text) -- the response was JSON but not an Object
+        _notAnObject -> returnJson ("Something went wrong!" :: Text) -- the response was JSON but not an Object
+
+
+data CsvOpts = CsvOpts
+  { includeEmpty :: !Bool
+  } deriving (Eq, Show)
+
+
+csvAForm :: AForm Handler CsvOpts
+csvAForm = CsvOpts
+  <$> areq checkBoxField "Include users with no attempts" (Just False)
+
+csvForm :: Html -> MForm Handler (FormResult CsvOpts, Widget)
+csvForm = renderTable csvAForm
+
+postSeshatCSVR :: Handler Text
+postSeshatCSVR = do
+  ((result, _widget), _enctype) <- runFormPost csvForm
+  case result of
+    FormSuccess csvOpts -> do
+        (usrs :: [Entity User]) <- runDB $ selectList [] []
+        (scs :: [Entity Score]) <- runDB $ selectList [] []
+        let summList = map snd (M.toList . unSummary . calculateSummary $ tally usrs scs)
+        return (decodeUtf8 . LB.toStrict . C.encodeDefaultOrderedByName $ summList)
+    _notSuccess -> redirect SeshatR

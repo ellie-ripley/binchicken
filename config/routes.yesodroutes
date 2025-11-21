@@ -32,5 +32,6 @@
 
 -- Other pages
 /seshat SeshatR GET POST
+/seshat-csv SeshatCSVR POST
 /proof-playground ProofPlaygroundR GET POST
 /lambda-playground LambdaPlaygroundR GET POST

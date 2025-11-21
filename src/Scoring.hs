@@ -2,6 +2,8 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE InstanceSigs #-}
 
 module Scoring where
 
@@ -35,10 +37,18 @@ import Import.NoFoundation
   , User(..)
   )
 
-import Data.Ratio (Rational, (%), denominator, numerator)
+import Data.Ratio (Rational, denominator, numerator)
 import Data.Map (Map)
 import qualified Data.Map                  as M
 import Data.Text (Text)
+import Data.Text.Encoding (encodeUtf8)
+import Data.Csv ( DefaultOrdered(..)
+                , ToField(..)
+                , ToNamedRecord(..)
+                , (.=)
+                , namedRecord
+                )
+import qualified Data.Vector as V
 
 import ExerciseType
   ( ExerciseTargets(..)
@@ -48,9 +58,9 @@ import Settings.Binchicken (activeExerciseTypes, targets)
 
 -- | Information about a single user's progress on a single exercise type
 data Progress =
-  Progress { currentStreak :: Int
-           , bestStreak    :: Int
-           , totalCorrect  :: Int
+  Progress { currentStreak :: !Int
+           , bestStreak    :: !Int
+           , totalCorrect  :: !Int
            }
   deriving (Eq, Read, Show)
 
@@ -92,11 +102,22 @@ blankResults :: Results Progress
 blankResults = Results (M.fromList $ map (\et -> (et, zeroProgress)) activeExerciseTypes)
 
 data SummaryRow a = SummaryRow
-  { srUid :: Key User
-  , srEmail :: Text
-  , srResults :: Results a
+  { srUid :: !(Key User)
+  , srEmail :: !Text
+  , srResults :: !(Results a)
   }
   deriving(Functor)
+
+instance ToField a => ToNamedRecord (SummaryRow a) where
+  toNamedRecord (SummaryRow{..}) =
+    let resList = M.toList (unResults srResults)
+        resRec = map (\(et, v) -> (encodeUtf8 . pack . show $ et) .= (toField v)) resList
+    in namedRecord (["email" .= srEmail] <> resRec)
+
+instance DefaultOrdered (SummaryRow a) where
+  headerOrder _ =
+    let exHeaders = map (encodeUtf8 . pack . show) activeExerciseTypes
+    in V.force . V.fromList $ ["email"] <> exHeaders 
 
 -- | Information about a collection of users' progress
 newtype Summary a = Summary { unSummary :: Map (Key User) (SummaryRow a) }

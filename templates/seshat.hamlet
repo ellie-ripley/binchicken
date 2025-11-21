@@ -46,3 +46,8 @@
                         <td>#{displayYear $ fst myms}
                         <td>#{displaySection $ snd myms}
                         <td><input name=#{updateCheck} id=#{updateTag <> displayUserId i} type="checkbox">
+    <div .row>
+        <div .col-lg-12>
+            <form method=post action=@{SeshatCSVR} enctype=#{enctype} id=#{csv}>
+                ^{csvWidget}
+                <button type="submit" form=#{csv} class="btn btn-primary">Gimme a CSV!

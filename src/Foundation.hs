@@ -298,6 +298,7 @@ instance Yesod BinChicken where
     isAuthorized ProfileR _ = isAuthenticated
 
     isAuthorized SeshatR _ = isAdmin
+    isAuthorized SeshatCSVR _ = isAdmin
     isAuthorized ProofPlaygroundR _ = return Authorized
     isAuthorized LambdaPlaygroundR _ = return Authorized
     -- This function creates static content files in the static folder
