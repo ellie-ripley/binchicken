@@ -22,6 +22,7 @@ data ExerciseType =
   | ProveAnArgument
   | AlphaEquivalence
   | BetaReduction
+  | PerformSubstitution
   deriving (Eq, Read, Show, Enum, Ord, Bounded, Generic)
 instance ToJSON ExerciseType
 instance FromJSON ExerciseType
@@ -40,6 +41,7 @@ prettyExerciseName = \case
   ProveAnArgument -> "Give an NJ proof of a given argument"
   AlphaEquivalence -> "Provide a term alpha-equivalent to a given term"
   BetaReduction -> "Beta reduce a term until it can't be reduced farther"
+  PerformSubstitution -> "Perform a given substitution on a given formula"
 
 data ExerciseTargets =
   ExerciseTargets { totalMilestone1 :: Int

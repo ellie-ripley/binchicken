@@ -55,6 +55,7 @@ defaultRandomFormulaSettings = \case
     defRandomFormulaSettings { rfDegreeWeights = [1, 2] }
   AlphaEquivalence             -> defRandomFormulaSettings
   BetaReduction                -> defRandomFormulaSettings
+  PerformSubstitution          -> defRandomFormulaSettings    
 
 
 
@@ -136,15 +137,16 @@ targets :: ExerciseType -> ExerciseTargets
 targets = \case
   DummyExercise                -> ExerciseTargets 20 50 15
   IdentifyMainConnective       -> ExerciseTargets 20 50 15
-  EvaluateBoolean              -> ExerciseTargets 15 30 10
-  EvaluateStrongKleene         -> ExerciseTargets 15 30 10
-  EvaluateDunnBelnap           -> ExerciseTargets 15 30 10
+  EvaluateBoolean              -> ExerciseTargets 15 30 12
+  EvaluateStrongKleene         -> ExerciseTargets 15 30 12
+  EvaluateDunnBelnap           -> ExerciseTargets 15 30 12
   CounterexampleClassical      -> ExerciseTargets 20 40 15
   CounterexampleNonclassical   -> ExerciseTargets 20 40 15
   ProofWithRequirements        -> ExerciseTargets 10 20 10
-  ProveAnArgument              -> ExerciseTargets 10 20 10
-  AlphaEquivalence             -> ExerciseTargets 10 20 10
-  BetaReduction                -> ExerciseTargets 10 20 10
+  ProveAnArgument              -> ExerciseTargets 10 20 12
+  AlphaEquivalence             -> ExerciseTargets 10 20 12
+  BetaReduction                -> ExerciseTargets 10 20 12
+  PerformSubstitution          -> ExerciseTargets 15 30 12
 
 fullStreak :: ExerciseType -> Int
 fullStreak = streakMilestone1 . targets
@@ -162,11 +164,13 @@ exerciseRoute = \case
   ProveAnArgument              -> ProveArgumentR
   AlphaEquivalence             -> AlphaEquivalenceR
   BetaReduction                -> BetaReductionR
+  PerformSubstitution          -> PerformSubstitutionR
 
 -- | List of exercise types in actual use
 activeExerciseTypes :: [ExerciseType]
 activeExerciseTypes =
   [ IdentifyMainConnective
+  , PerformSubstitution
   , EvaluateBoolean
   , EvaluateStrongKleene
   , EvaluateDunnBelnap

@@ -29,6 +29,7 @@
 /prove-an-argument ProveArgumentR GET POST
 /alpha-equivalence AlphaEquivalenceR GET POST
 /beta-reduction BetaReductionR GET POST
+/perform-substitution PerformSubstitutionR GET POST
 
 -- Other pages
 /seshat SeshatR GET POST
