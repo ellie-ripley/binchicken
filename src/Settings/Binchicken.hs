@@ -172,8 +172,4 @@ activeExerciseTypes =
   , EvaluateDunnBelnap
   , CounterexampleClassical
   , CounterexampleNonclassical
-  , ProofWithRequirements
-  , ProveAnArgument
-  , AlphaEquivalence
-  , BetaReduction
   ]
