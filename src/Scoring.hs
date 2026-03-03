@@ -13,8 +13,6 @@ import Import.NoFoundation
   , ($)
   , (==)
   , (<>)
-  , divMod
-  , error
   , fmap
   , foldr
   , fromIntegral

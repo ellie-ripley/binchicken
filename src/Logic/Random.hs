@@ -5,7 +5,7 @@
 module Logic.Random where
 
 import Data.Bifunctor (first)
-import Data.List (foldl', nub, (\\))
+import Data.List (nub, (\\))
 import qualified Data.List.NonEmpty as NE
 import Data.Text (Text, pack, unpack)
 

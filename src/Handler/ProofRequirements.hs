@@ -62,7 +62,7 @@ import Import.NoFoundation
   )
 
 import Data.Aeson (Result(..), decodeStrict, encode, withObject)
-import Data.List (nub, (\\))
+import Data.List ((\\))
 import Data.Text.Encoding (decodeUtf8, encodeUtf8)
 import qualified System.Random as SR
 import Text.Julius (rawJS)
@@ -112,11 +112,11 @@ randomRequirements
   -> (ProofRequirements, g)
 randomRequirements cSetts aSetts g =
   let (con, g1) = randomFormula cSetts g
-      (size, g2) = SR.randomR (1 :: Int, 4) g1
+      (_size, g2) = SR.randomR (1 :: Int, 4) g1
       (reqAs, g3) = SR.randomR (0, 2) g2
       (reqDs, g4) = SR.randomR (0, 2) g3
       (fms, g5) = randomFormulas aSetts (reqAs + reqDs) g4
-      (rOA, rDA) = splitAt reqAs fms
+      (_rOA, _rDA) = splitAt reqAs fms
       (reqRs, g6) = randomRuleList (1, 3) g5
       (bannedRs, g7) = randomRuleList (0, 2) g6
       prfR = ProofRequirements { reqConclusion = con

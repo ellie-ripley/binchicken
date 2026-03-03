@@ -64,9 +64,7 @@ import Scoring
   , exScore
   , tally
   , totalPoints
-  , Progress(..)
   , Summary(..)
-  , SummaryRow(..)
   )
 
 updateTag :: Text
@@ -216,7 +214,7 @@ postSeshatCSVR :: Handler Text
 postSeshatCSVR = do
   ((result, _widget), _enctype) <- runFormPost csvForm
   case result of
-    FormSuccess csvOpts -> do
+    FormSuccess _csvOpts -> do
         (usrs :: [Entity User]) <- runDB $ selectList [] []
         (scs :: [Entity Score]) <- runDB $ selectList [] []
         let summList = map snd (M.toList . unSummary . calculateSummary $ tally usrs scs)

@@ -18,23 +18,18 @@ import Import.NoFoundation
   , Exercise(..)
   , FromJSON(..)
   , Html
-  , Int
-  , IO
   , Key
   , Maybe(..)
   , SentExercise(..)
   , Text
   , Value
   , ($)
-  , (+)
   , (.)
   , (.=)
   , (.:)
   , (<$>)
   , (<*>)
   , (<>)
-  , (==)
-  , (>)
   , defaultLayout
   , error
   , fromMaybe
@@ -45,7 +40,6 @@ import Import.NoFoundation
   , insertEntity
   , liftIO
   , maybeAuthId
-  , null
   , object
   , pack
   , parseCheckJsonBody
@@ -53,7 +47,6 @@ import Import.NoFoundation
   , runDB
   , setTitle
   , show
-  , splitAt
   , toJSON
   , toStrict
   , toWidgetHead
@@ -62,9 +55,7 @@ import Import.NoFoundation
   )
 
 import Data.Aeson (Result(..), decodeStrict, encode, withObject)
-import Data.List (nub, (\\))
 import Data.Text.Encoding (decodeUtf8, encodeUtf8)
-import qualified System.Random as SR
 import Text.Julius (rawJS)
 
 import Handler.Common (updateScore)
@@ -72,7 +63,6 @@ import Handler.LoginCheck (loginNotifyW)
 import Handler.Proofs (singleProofEntry)
 import Logic.Arguments (Argument(..))
 import Logic.Formulas (atom, displayFormula)
-import Logic.Random (randomFormula, randomFormulas, randomIntValidArgumentIO)
 import Logic.PreProofs ( RawProofTree(..)
                        , Rule(..)
                        , UnaryRule(..)
@@ -83,6 +73,10 @@ import Logic.PreProofs ( RawProofTree(..)
                        , displayPPPError
                        )
 import Logic.Proofs
+    ( checkProofOf,
+      displayCheckProofOf,
+      CheckProofOf(ProofOfArgument) )
+import Logic.Random (randomIntValidArgumentIO)
 import Scoring (boolToCorrect)
 import Settings.Binchicken (RandomFormulaSettings(..), defaultRandomFormulaSettings)
 

@@ -8,12 +8,10 @@
 module Handler.LambdaPlayground where
 
 import Import ( defaultLayout
-              , hamlet
               , parseCheckJsonBody
               , returnJson
               , shamlet
               , setTitle
-              , toWidgetHead
               , widgetFile
               , Handler
               , Html
@@ -29,12 +27,11 @@ import Data.Aeson ( FromJSON
                   , (.=)
                   )
 import Data.Text (Text)
-import qualified Data.Text as T
 import GHC.Generics (Generic)
 import Text.Blaze.Html.Renderer.String (renderHtml)
 import Text.Julius (rawJS)
 
-import Logic.Lambdas.Types (LVar(..), lvarList)
+import Logic.Lambdas.Types (lvarList)
 import Logic.Lambda   ( dbIsRedex
                       , dbParallelOneStep
                       , deBruijn

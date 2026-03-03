@@ -3,8 +3,6 @@
 
 module Settings.Binchicken where
 
-import Data.Aeson (ToJSON, FromJSON)
-import GHC.Generics (Generic)
 
 import ExerciseType (ExerciseType(..), ExerciseTargets(..))
 import Logic.Formulas (Atomic(..), NullaryConnective(..), UnaryConnective(..), BinaryConnective(..), Connective(..), atomic)

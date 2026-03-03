@@ -12,7 +12,6 @@ import Import ( defaultLayout
               , fromMaybe
               , getCurrentTime
               , getEntity
-              , hamlet
               , insert
               , insertEntity
               , liftIO
@@ -20,10 +19,8 @@ import Import ( defaultLayout
               , parseCheckJsonBody
               , returnJson
               , runDB
-              , shamlet
               , setTitle
               , toStrict
-              , toWidgetHead
               , widgetFile
               , Attempt(..)
               , Entity(..)
@@ -47,31 +44,17 @@ import Data.Aeson ( FromJSON
                   )
 import Data.List (intersect)
 import Data.Text (Text)
-import qualified Data.Text as T
 import Data.Text.Encoding (decodeUtf8, encodeUtf8)
 import GHC.Generics (Generic)
-import Text.Blaze.Html.Renderer.String (renderHtml)
 import Text.Julius (rawJS)
 
 import ExerciseType (ExerciseType(..))
 import Handler.Common (updateScore)
 import Logic.Lambdas.Types (LVar(..), Term(..), lvarList)
 import Logic.Lambda   ( boundVars
-                      , dbIsRedex
-                      , dbParallelOneStep
                       , deBruijn
-                      , displayDBIsRedex
-                      , displayDBReductionResult
-                      , displayDeBruijn
-                      , displayLVar
                       , displayTerm
-                      , displayTermAllPars
-                      , displayTermMinPars
-                      , displayTermError
-                      , namify
-                      , normaliseDB
                       , parseTerm
-                      , freeVars
                       )
 import Logic.Random (randomLambdaTermIO)
 import Scoring (Correct(..), correctToBool)
