@@ -1,0 +1,66 @@
+let negButton = document.getElementById("#{rawJS negButt}");
+let conjButton = document.getElementById("#{rawJS conjButt}");
+let disjButton = document.getElementById("#{rawJS disjButt}");
+let implButton = document.getElementById("#{rawJS implButt}");
+let fumButton = document.getElementById("#{rawJS fumButt}");
+let vumButton = document.getElementById("#{rawJS vumButt}");
+
+
+  negButton.addEventListener("click", (function() {
+    navigator.clipboard.writeText("¬");
+  }));
+  conjButton.addEventListener("click", (function() {
+    navigator.clipboard.writeText("∧");
+  }));
+  disjButton.addEventListener("click", (function() {
+    navigator.clipboard.writeText("∨");
+  }));
+  implButton.addEventListener("click", (function() {
+    navigator.clipboard.writeText("→");
+  }));
+  fumButton.addEventListener("click", (function() {
+    navigator.clipboard.writeText("⊥");
+  }));
+  vumButton.addEventListener("click", (function() {
+    navigator.clipboard.writeText("⊤");
+  }));
+
+
+function reportAnswer(data) {
+  console.log("Success!");
+  console.log(data);
+  const fb = document.getElementById("#{rawJS feedbackId}");
+  fb.innerHTML = "";
+  if ("feedback" in data[1])
+  {
+    fb.innerHTML = data[1].feedback;
+  }
+  if (data[0].isCorrect) {
+    document.getElementById("#{rawJS buttonDivId}").innerHTML = "";
+  }
+  fb.innerHTML +=
+    '<p><button class="btn btn-primary" onClick="window.location.reload(true)">Next exercise</button></p>'
+}
+
+function logError(data) {
+  console.log("Error reporting response.");
+  console.log(data);
+}
+
+$(function() {
+  $("##{rawJS submitButtonId}").click(function() {
+    var ajaxData;
+    ajaxData = JSON.stringify({
+        psExerciseId: #{toJSON exid},
+        psResponse: "test"
+    });
+    $.ajax({
+      url: '@{ajaxRoute}',
+      type: 'POST',
+      contentType: "application/json",
+      data: ajaxData,
+      success: reportAnswer,
+      error: logError
+    });
+  });
+});

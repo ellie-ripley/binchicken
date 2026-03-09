@@ -55,7 +55,8 @@ defaultRandomFormulaSettings = \case
     defRandomFormulaSettings { rfDegreeWeights = [1, 2] }
   AlphaEquivalence             -> defRandomFormulaSettings
   BetaReduction                -> defRandomFormulaSettings
-  PerformSubstitution          -> defRandomFormulaSettings    
+  PerformSubstitution          ->
+    defRandomFormulaSettings { rfAtomics = map atomic ['p'..'u'] }    
 
 
 
@@ -83,6 +84,21 @@ defaultRandomArgumentSettings etype =
 
 raAtomics :: RandomArgumentSettings -> [Atomic]
 raAtomics = rfAtomics . rarfSettings
+
+data RandomSubstitutionSettings =
+  RandomSubstitutionSettings
+    { rsAtomics :: [Atomic] -- ^ which atomics to include in the substitution
+    , rsIdPercent :: Int -- ^ percent chance to leave an atomic alone
+    , rsRfSettings :: RandomFormulaSettings -- ^ settings to use to generate new substitutends 
+    }
+
+defRandomSubstitutionSettings :: RandomSubstitutionSettings
+defRandomSubstitutionSettings =
+  RandomSubstitutionSettings
+    { rsAtomics = map atomic ['p'..'s']
+    , rsIdPercent = 10
+    , rsRfSettings = defaultRandomFormulaSettings PerformSubstitution
+    }
 
 -- | For counting rules, initial sequents count as 0
 data RandomSequentPreProofSettings =
