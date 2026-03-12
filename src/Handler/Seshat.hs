@@ -62,6 +62,8 @@ import Scoring
   ( calculateSummary
   , displayPoints
   , exScore
+  , renderPoints
+  , renderSummary
   , tally
   , totalPoints
   , Summary(..)
@@ -105,10 +107,10 @@ grYearSection grs i =
         Nothing -> (Nothing, Nothing)
         Just g -> (groupingYear g, groupingSection g)
 
-displayScore :: Maybe Int -> String
+displayScore :: Maybe Rational -> String
 displayScore =
   \case Nothing -> "Missing"
-        Just i  -> show i
+        Just i  -> renderPoints i
 
 seshatFormIds :: (Text, Text, Text, Text, Text, Text)
 seshatFormIds = ("yearInput", "sectionInput", "submitButton", "updateChecked", "updateMsg", "csv")
@@ -217,6 +219,6 @@ postSeshatCSVR = do
     FormSuccess _csvOpts -> do
         (usrs :: [Entity User]) <- runDB $ selectList [] []
         (scs :: [Entity Score]) <- runDB $ selectList [] []
-        let summList = map snd (M.toList . unSummary . calculateSummary $ tally usrs scs)
+        let summList = map snd (M.toList . unSummary . renderSummary . calculateSummary $ tally usrs scs)
         return (decodeUtf8 . LB.toStrict . C.encodeDefaultOrderedByName $ summList)
     _notSuccess -> redirect SeshatR

@@ -15,13 +15,14 @@ import Import.NoFoundation
   , (<>)
   , fmap
   , foldr
-  , fromIntegral
+  , fromRational
   , fst
   , map
   , otherwise
   , pack
   , show
   , Bool(..)
+  , Double
   , Entity(..)
   , Eq
   , Functor
@@ -32,10 +33,16 @@ import Import.NoFoundation
   , Read
   , Score(..)
   , Show(..)
+  , String
   , User(..)
   )
 
-import Data.Ratio (Rational, denominator, numerator)
+import Data.Ratio
+  ( Rational
+  , (%)
+  , denominator
+  , numerator
+  )
 import Data.Map (Map)
 import qualified Data.Map                  as M
 import Data.Text (Text)
@@ -47,14 +54,14 @@ import Data.Csv ( DefaultOrdered(..)
                 , namedRecord
                 )
 import qualified Data.Vector as V
+import Text.Printf ( printf )
 
 import ExerciseType
   ( ExerciseTargets(..)
   , ExerciseType(..)
   )
 import Settings.Binchicken
-  ( ActiveET(..)
-  , rawActiveExerciseTypes
+  ( rawActiveExerciseTypes
   , targets
   )
 
@@ -192,32 +199,42 @@ calcMilestone (ExerciseTargets tot1 tot2 str) (Progress _ bes tot)
   | tot >= tot1 = SmallTotal
   | otherwise   = NoMilestone
 
-calcPoints :: Milestone -> Int
+calcPoints :: Milestone -> Rational
 calcPoints = \case
   NoMilestone -> 0
-  SmallTotal  -> 2
-  LargeTotal  -> 3
-  Streak      -> 4
+  SmallTotal  -> 1
+  LargeTotal  -> 9 % 4
+  Streak      -> 7 % 2
 
-pointsEarned :: ExerciseType -> Progress -> Int
+renderPoints :: Rational -> String
+renderPoints rat 
+  | denominator rat == 1 = show $ numerator rat
+  | denominator rat == 2 = printf "%.1f" (fromRational rat :: Double)
+  | otherwise = printf "%.2f" (fromRational rat :: Double)
+
+pointsEarned :: ExerciseType -> Progress -> Rational
 pointsEarned et = calcPoints . calcMilestone (targets et)
 
-calculateResults :: Results Progress -> Results Int
+calculateResults :: Results Progress -> Results Rational
 calculateResults = Results . M.mapWithKey pointsEarned . unResults
 
-calculateSummaryRow :: SummaryRow Progress -> SummaryRow Int
+calculateSummaryRow :: SummaryRow Progress -> SummaryRow Rational
 calculateSummaryRow sr = sr { srResults = calculateResults (srResults sr) }
 
-calculateSummary :: Summary Progress -> Summary Int
+calculateSummary :: Summary Progress -> Summary Rational
 calculateSummary = Summary . fmap calculateSummaryRow . unSummary
 
-exScore :: SummaryRow Int -> ExerciseType -> Maybe Int
+renderSummary :: Summary Rational -> Summary String
+renderSummary = Summary . fmap renderSummaryRow . unSummary
+  where
+    renderSummaryRow sr = sr { srResults = renderResults (srResults sr) }
+    renderResults = Results . M.map renderPoints . unResults
+
+exScore :: SummaryRow Rational -> ExerciseType -> Maybe Rational
 exScore (SummaryRow _ _ res) et = M.lookup et (unResults res)
 
-totalPoints :: SummaryRow Int -> Rational
-totalPoints sr = foldr adder 0 (unResults $ srResults sr)
-  where
-    adder n a = a + (fromIntegral n)
+totalPoints :: SummaryRow Rational -> Rational
+totalPoints sr = foldr (+) 0 (unResults $ srResults sr)
 
 displayPoints :: Rational -> Text
 displayPoints r

@@ -28,5 +28,5 @@ getExercisesR :: Handler Html
 getExercisesR = do
     let exTypes = zip ([(1::Int)..]) (map renderAET activeExerciseTypes) -- list active exercises only
     defaultLayout $ do
-        setTitle "Exercises"
+        setTitle "Exercises" 
         $(widgetFile "exercises")

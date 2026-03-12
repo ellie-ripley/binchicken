@@ -38,7 +38,7 @@ defRandomFormulaSettings =
   RandomFormulaSettings
         { rfDegreeWeights = [1, 2, 2, 2, 1]
         , rfAtomics = map atomic ['a'..'z']
-        , rfNullaryConns = [Falsum]
+        , rfNullaryConns = [Falsum, Verum]
         , rfUnaryConns = [Negation]
         , rfBinaryConns = [Conjunction, Disjunction, Implication]
         }

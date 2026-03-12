@@ -11,7 +11,7 @@
         <p>There are no exercise types! (This is a bug in the site!)
     $else
         <div .ex-overall>
-            <p>Total: #{tpoin} / 40 points earned
+            <p>Total: #{tpoin} / 35 points earned
         <div .ex-progress-list>
             $forall numExt <- exTypes
                 $maybe et <- snd (snd numExt)
@@ -56,7 +56,7 @@
                                                 <p>Not yet!
                                         <div .col-md-2>
                                             <h6>Points earned:
-                                            <h4>#{show( pointsEarned et prog)}
+                                            <h4>#{renderPoints (pointsEarned et prog)}
                             $nothing
                                 <p>Trouble reading streaks! (This is a bug in the site!)
                 $nothing

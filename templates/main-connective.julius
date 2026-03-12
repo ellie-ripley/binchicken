@@ -54,6 +54,21 @@ $(function() {
     });
   });
 
+  $("#js-button-verum").click(function() {
+    // Make an AJAX request to the server to create a new attempt
+    $.ajax({
+      url: '@{MainConnectiveR}',
+      type: 'POST',
+      contentType: "application/json",
+      data: JSON.stringify({
+        imcExerciseId: #{toJSON exid},
+        imcResponse: #{toJSON $ Just (CN Verum)}
+      }),
+      success: reportAnswer,
+      error: logError
+    });
+  });
+
   $("#js-button-negation").click(function() {
     // Make an AJAX request to the server to create a new attempt
     $.ajax({

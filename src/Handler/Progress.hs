@@ -60,6 +60,7 @@ import Scoring
   , calculateSummaryRow
   , displayPoints
   , pointsEarned
+  , renderPoints
   , tally
   , totalPoints
   )
@@ -80,7 +81,7 @@ getProgressR = do
                 sr  = case M.lookup uid (unSummary tal) of
                           Just succ -> succ
                           Nothing   -> error "Error 2323!"
-                tpoin = displayPoints . totalPoints $ calculateSummaryRow sr
+                tpoin = renderPoints . totalPoints $ calculateSummaryRow sr
             defaultLayout $ do
                 setTitle "Progress"
                 $(widgetFile "progress")

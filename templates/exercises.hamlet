@@ -18,4 +18,4 @@
                                 #{fst et}. #{fst (snd et)}
                         $nothing
                           <li>
-                              <p>#{fst et}. #{fst (snd et)}
+                              #{fst et}. #{fst (snd et)}
