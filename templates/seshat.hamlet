@@ -26,8 +26,8 @@
                         <th>ID
                         <th>Email
                         <th>Total
-                        $forall et <- exts
-                            <th>#{show (fromEnum et)}
+                        $forall et <- exNums
+                            <th>#{show (fst et)}
                         <th>Year
                         <th>Section
                         <th>Set Year/Section?
@@ -39,8 +39,11 @@
                         <td>#{userEmail u}
                         $maybe src <- M.lookup i (unSummary summ)
                             <td>#{renderPoints (totalPoints src)}
-                            $forall et <- exts
-                                <td>#{displayScore (exScore src et)}
+                            $forall et <- exNums
+                                $maybe e <- (snd et)
+                                    <td>#{displayScore (exScore src e)}
+                                $nothing
+                                    <td>*
                         $nothing
                             <td>Error 23
                         <td>#{displayYear $ fst myms}

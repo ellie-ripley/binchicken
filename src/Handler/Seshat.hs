@@ -57,10 +57,13 @@ import Control.Monad (join)
 import qualified Data.List as L
 import qualified Data.Map as M
 
-import Settings.Binchicken (rawActiveExerciseTypes)
+import ExerciseType (ExerciseType(..))
+import Settings.Binchicken
+  ( ActiveET(..)
+  , activeExerciseTypes
+  )
 import Scoring
   ( calculateSummary
-  , displayPoints
   , exScore
   , renderPoints
   , renderSummary
@@ -115,13 +118,21 @@ displayScore =
 seshatFormIds :: (Text, Text, Text, Text, Text, Text)
 seshatFormIds = ("yearInput", "sectionInput", "submitButton", "updateChecked", "updateMsg", "csv")
 
+processAETs :: [ActiveET] -> [(Int, Maybe ExerciseType)]
+processAETs aets = map go (zip [(1::Int)..] aets)
+  where
+    go (i, aet) = case aet of
+                    Placeholder -> (i, Nothing)
+                    Active et   -> (i, Just et)
+    
+
 getSeshatR :: Handler Html
 getSeshatR = do
   (usrs :: [Entity User]) <- runDB $ selectList [] []
   (scs :: [Entity Score]) <- runDB $ selectList [] []
   (grs :: [Entity Grouping]) <- runDB $ selectList [] []
   let summ = calculateSummary $ tally usrs scs
-      exts = rawActiveExerciseTypes
+      exNums = processAETs activeExerciseTypes
       groups = alignGroupings usrs grs
       yearList :: [(Text, Int)]
       yearList = map (pack . show &&& id) [2025, 2026]
