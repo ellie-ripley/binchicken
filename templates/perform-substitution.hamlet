@@ -26,7 +26,7 @@
                 <thead .thead-light>
                     <tr>
                         <th>Connective
-                        <th>Write (click to copy symbol to your clipboard):
+                        <th>Symbol (click to add symbol to your formula):
                 <tbody>
                     <tr>
                         <td>Negation

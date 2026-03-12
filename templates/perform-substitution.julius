@@ -6,24 +6,28 @@ let fumButton = document.getElementById("#{rawJS fumButt}");
 let vumButton = document.getElementById("#{rawJS vumButt}");
 let submitButton = document.getElementById("#{rawJS submitButtonId}");
 
+function addToResponse (tx) {
+  let inputField = document.getElementById("#{rawJS inputFormulaId}");
+  inputField.value += tx;
+}
 
   negButton.addEventListener("click", (function() {
-    navigator.clipboard.writeText("¬");
+    addToResponse("¬");
   }));
   conjButton.addEventListener("click", (function() {
-    navigator.clipboard.writeText("∧");
+    addToResponse("∧");
   }));
   disjButton.addEventListener("click", (function() {
-    navigator.clipboard.writeText("∨");
+    addToResponse("∨");
   }));
   implButton.addEventListener("click", (function() {
-    navigator.clipboard.writeText("→");
+    addToResponse("→");
   }));
   fumButton.addEventListener("click", (function() {
-    navigator.clipboard.writeText("⊥");
+    addToResponse("⊥");
   }));
   vumButton.addEventListener("click", (function() {
-    navigator.clipboard.writeText("⊤");
+    addToResponse("⊤");
   }));
 
 
