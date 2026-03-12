@@ -18,7 +18,7 @@
             <button .btn.btn-primary ##{submitButtonId}>Submit
     <div .row>
         <div .col-lg-12>
-            <p ##{feedbackId}>
+            <div ##{feedbackId}>
     <div .row>
         <div .col-lg-12>
             <p>You can input connectives by using the symbols below or their ASCII approximations as shown:

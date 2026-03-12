@@ -192,6 +192,9 @@ newtype Substitution = Sub { unSub :: M.Map Atomic Formula }
 instance ToJSON Substitution
 instance FromJSON Substitution
 
+emptySub :: Substitution
+emptySub = Sub M.empty
+
 subApp :: Substitution -> Formula -> Formula
 subApp s fm = fm >>= atSub
   where

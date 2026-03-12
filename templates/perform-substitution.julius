@@ -4,6 +4,7 @@ let disjButton = document.getElementById("#{rawJS disjButt}");
 let implButton = document.getElementById("#{rawJS implButt}");
 let fumButton = document.getElementById("#{rawJS fumButt}");
 let vumButton = document.getElementById("#{rawJS vumButt}");
+let submitButton = document.getElementById("#{rawJS submitButtonId}");
 
 
   negButton.addEventListener("click", (function() {
@@ -47,12 +48,11 @@ function logError(data) {
   console.log(data);
 }
 
-$(function() {
-  $("##{rawJS submitButtonId}").click(function() {
+submitButton.addEventListener("click", (function() {
     var ajaxData;
     ajaxData = JSON.stringify({
         psExerciseId: #{toJSON exid},
-        psResponse: "test"
+        psResponse: document.getElementById("#{rawJS inputFormulaId}").value,
     });
     $.ajax({
       url: '@{ajaxRoute}',
@@ -62,5 +62,4 @@ $(function() {
       success: reportAnswer,
       error: logError
     });
-  });
-});
+  }));
