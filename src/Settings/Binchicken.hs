@@ -3,8 +3,6 @@
 
 module Settings.Binchicken where
 
-import Data.Aeson (ToJSON, FromJSON)
-import GHC.Generics (Generic)
 
 import ExerciseType (ExerciseType(..), ExerciseTargets(..))
 import Logic.Formulas (Atomic(..), NullaryConnective(..), UnaryConnective(..), BinaryConnective(..), Connective(..), atomic)
@@ -57,6 +55,8 @@ defaultRandomFormulaSettings = \case
     defRandomFormulaSettings { rfDegreeWeights = [1, 2] }
   AlphaEquivalence             -> defRandomFormulaSettings
   BetaReduction                -> defRandomFormulaSettings
+  PerformSubstitution          ->
+    defRandomFormulaSettings { rfAtomics = map atomic ['p'..'u'] }    
 
 
 
@@ -84,6 +84,21 @@ defaultRandomArgumentSettings etype =
 
 raAtomics :: RandomArgumentSettings -> [Atomic]
 raAtomics = rfAtomics . rarfSettings
+
+data RandomSubstitutionSettings =
+  RandomSubstitutionSettings
+    { rsAtomics :: [Atomic] -- ^ which atomics to include in the substitution
+    , rsIdPercent :: Int -- ^ percent chance to leave an atomic alone
+    , rsRfSettings :: RandomFormulaSettings -- ^ settings to use to generate new substitutends 
+    }
+
+defRandomSubstitutionSettings :: RandomSubstitutionSettings
+defRandomSubstitutionSettings =
+  RandomSubstitutionSettings
+    { rsAtomics = map atomic ['p'..'s']
+    , rsIdPercent = 10
+    , rsRfSettings = defaultRandomFormulaSettings PerformSubstitution
+    }
 
 -- | For counting rules, initial sequents count as 0
 data RandomSequentPreProofSettings =
@@ -138,15 +153,16 @@ targets :: ExerciseType -> ExerciseTargets
 targets = \case
   DummyExercise                -> ExerciseTargets 20 50 15
   IdentifyMainConnective       -> ExerciseTargets 20 50 15
-  EvaluateBoolean              -> ExerciseTargets 15 30 10
-  EvaluateStrongKleene         -> ExerciseTargets 15 30 10
-  EvaluateDunnBelnap           -> ExerciseTargets 15 30 10
+  EvaluateBoolean              -> ExerciseTargets 15 30 12
+  EvaluateStrongKleene         -> ExerciseTargets 15 30 12
+  EvaluateDunnBelnap           -> ExerciseTargets 15 30 12
   CounterexampleClassical      -> ExerciseTargets 20 40 15
   CounterexampleNonclassical   -> ExerciseTargets 20 40 15
   ProofWithRequirements        -> ExerciseTargets 10 20 10
-  ProveAnArgument              -> ExerciseTargets 10 20 10
-  AlphaEquivalence             -> ExerciseTargets 10 20 10
-  BetaReduction                -> ExerciseTargets 10 20 10
+  ProveAnArgument              -> ExerciseTargets 10 20 12
+  AlphaEquivalence             -> ExerciseTargets 10 20 12
+  BetaReduction                -> ExerciseTargets 10 20 12
+  PerformSubstitution          -> ExerciseTargets 15 30 12
 
 fullStreak :: ExerciseType -> Int
 fullStreak = streakMilestone1 . targets
@@ -164,18 +180,16 @@ exerciseRoute = \case
   ProveAnArgument              -> ProveArgumentR
   AlphaEquivalence             -> AlphaEquivalenceR
   BetaReduction                -> BetaReductionR
+  PerformSubstitution          -> PerformSubstitutionR
 
 -- | List of exercise types in actual use
 activeExerciseTypes :: [ExerciseType]
 activeExerciseTypes =
   [ IdentifyMainConnective
+  , PerformSubstitution
   , EvaluateBoolean
   , EvaluateStrongKleene
   , EvaluateDunnBelnap
   , CounterexampleClassical
   , CounterexampleNonclassical
-  , ProofWithRequirements
-  , ProveAnArgument
-  , AlphaEquivalence
-  , BetaReduction
   ]

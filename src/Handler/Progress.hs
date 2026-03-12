@@ -21,7 +21,6 @@ import Import.NoFoundation
       ($),
       (.),
       fromIntegral,
-      Enum(fromEnum),
       Fractional((/)),
       Num((*)),
       Ord(..),
@@ -32,17 +31,20 @@ import Import.NoFoundation
       Maybe(Just, Nothing),
       Text,
       error,
+      fst,
       null,
       pack,
       redirect,
       selectList,
       setTitle,
+      snd,
       Html,
       Yesod(defaultLayout),
       YesodPersist(..),
       widgetFile,
       img_ibis_icon_png,
-      YesodAuth(maybeAuthId) )
+      YesodAuth(maybeAuthId),
+      zip)
 import GHC.Float.RealFracMethods (roundDoubleInt)
 import qualified Data.Map as M
 import Database.Esqueleto.Legacy
@@ -63,7 +65,7 @@ import Scoring
 
 getProgressR :: Handler Html
 getProgressR = do
-    let exTypes = activeExerciseTypes -- Show only active exercises
+    let exTypes = zip ([(1::Int)..]) activeExerciseTypes -- Show only active exercises
     muid <- maybeAuthId
     case muid of
       Nothing -> redirect HomeR

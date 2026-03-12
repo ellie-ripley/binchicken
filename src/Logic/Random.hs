@@ -5,8 +5,9 @@
 module Logic.Random where
 
 import Data.Bifunctor (first)
-import Data.List (foldl', nub, (\\))
+import Data.List (nub, (\\))
 import qualified Data.List.NonEmpty as NE
+import qualified Data.Map as M
 import Data.Text (Text, pack, unpack)
 
 import Logic.Formulas
@@ -20,7 +21,11 @@ import qualified Data.Map.Strict as Map
 
 import System.Random (Random, RandomGen)
 import qualified System.Random as SR
-import Settings.Binchicken (RandomArgumentSettings(..), RandomFormulaSettings(..))
+import Settings.Binchicken
+  ( RandomArgumentSettings(..)
+  , RandomFormulaSettings(..)
+  , RandomSubstitutionSettings(..)
+  )
 
 
 -- SECTION: Random formulas
@@ -476,3 +481,25 @@ randomLambdaTerm vrs (mn, mx) g =
 
 randomLambdaTermIO :: [LVar] -> (Int, Int) -> IO Term
 randomLambdaTermIO lvr ws = SR.getStdRandom $ randomLambdaTerm lvr ws
+
+
+-- SECTION: Substitutions
+
+randomSubstitution
+  :: (RandomGen g)
+  => RandomSubstitutionSettings
+  -> g
+  -> (Substitution, g)
+randomSubstitution setts g = (Sub subMap, h)
+  where
+   (subMap, h) = foldr go (M.empty, g) (rsAtomics setts)
+   go :: (RandomGen r) => Atomic -> (M.Map Atomic Formula, r) -> (M.Map Atomic Formula, r)
+   go a (mp, r) =
+     let (coin, r') = SR.randomR (0 :: Int, 99) r
+     in if coin < (rsIdPercent setts)
+        then (mp, r')
+        else let (newFm, r'') = randomFormula (rsRfSettings setts) r'
+             in (M.insert a newFm mp, r'')
+     
+randomSubstitutionIO :: RandomSubstitutionSettings -> IO Substitution
+randomSubstitutionIO setts = SR.getStdRandom $ randomSubstitution setts

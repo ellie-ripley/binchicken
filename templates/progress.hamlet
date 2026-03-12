@@ -13,11 +13,12 @@
         <div .ex-overall>
             <p>Total: #{tpoin} / 40 points earned
         <div .ex-progress-list>
-            $forall et <- exTypes
+            $forall numExt <- exTypes
+             $with et <- snd numExt
               $with targs <- targets et
                 <div .row.ex-progress>
                     <a .col-6.ex-link href="@{exerciseRoute et}">
-                        #{fromEnum et}. #{prettyExerciseName et}
+                        #{fst numExt}. #{prettyExerciseName et}
                     $maybe prog <- M.lookup et (unResults $ srResults sr)
                       $with mile <- calcMilestone (targets et) prog
                         <div .row>

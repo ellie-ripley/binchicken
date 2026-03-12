@@ -12,6 +12,7 @@ import Control.Monad (ap)
 
 import Data.Bifunctor (first)
 import Data.List (nub)
+import qualified Data.Map as M
 import Data.Text (Text)
 import qualified Data.Text as T
 
@@ -185,6 +186,22 @@ Traversable GenFormula is lawful:
     3. sequenceA . fmap Compose = Compose . fmap sequenceA . sequenceA
     TODO
 -}
+
+newtype Substitution = Sub { unSub :: M.Map Atomic Formula }
+  deriving (Generic)
+instance ToJSON Substitution
+instance FromJSON Substitution
+
+emptySub :: Substitution
+emptySub = Sub M.empty
+
+subApp :: Substitution -> Formula -> Formula
+subApp s fm = fm >>= atSub
+  where
+    atSub :: Atomic -> Formula
+    atSub  a = case M.lookup a (unSub s) of
+                   Just g  -> g
+                   Nothing -> A a
 
 
 -- random for Atomic always picks a lowercase single character

@@ -1,0 +1,72 @@
+<div .container>
+    ^{loginNotifyW}
+    <div .row>
+        <h2>Perform a substitution
+    <div .row>
+        <div .col-lg-12>
+            <p>Here is a random formula!
+            <p ##{displayFormulaId}.oblang>#{displayFormula formula}
+    <div .row>
+        <div .col-lg-12>
+            <p>And here is a random substitution <code>s</code>! (For any atomic sentence <code>A</code> not listed, <code>s(A) = A</code>.)
+            ^{substitutionWidget subst}
+    <div .row>
+      <div .col-lg-12>
+        <p>What is the result of applying this substitution to this formula?
+        <input ##{inputFormulaId} type=text>
+        <div ##{buttonDivId}>
+            <button .btn.btn-primary ##{submitButtonId}>Submit
+    <div .row>
+        <div .col-lg-12>
+            <div ##{feedbackId}>
+    <div .row>
+        <div .col-lg-12>
+            <p>You can input connectives by using the symbols below or their ASCII approximations as shown:
+            <table .table.table-striped>
+                <thead .thead-light>
+                    <tr>
+                        <th>Connective
+                        <th>Symbol (click to add symbol to your formula):
+                <tbody>
+                    <tr>
+                        <td>Negation
+                        <td>
+                            <button .btn.btn-primary.conn-button ##{negButt}>
+                                <code>¬
+                                or
+                                <code>~
+                    <tr>
+                        <td>Conjunction
+                        <td>
+                            <button .btn.btn-primary.conn-button ##{conjButt}>
+                                <code>∧
+                                or
+                                <code>/\
+                    <tr>
+                        <td>Disjunction
+                        <td>
+                            <button .btn.btn-primary.conn-button ##{disjButt}>
+                                <code>∨
+                                or
+                                <code>\/
+                    <tr>
+                        <td>Implication
+                        <td>
+                            <button .btn.btn-primary.conn-button ##{implButt}>
+                                <code>→
+                                or
+                                <code>->
+                    <tr>
+                        <td>Falsum
+                        <td>
+                            <button .btn.btn-primary.conn-button ##{fumButt}>
+                                <code>⊥
+                                or
+                                <code>_|_
+                    <tr>
+                        <td>Verum
+                        <td>
+                            <button .btn.btn-primary.conn-button ##{vumButt}>
+                                <code>⊤
+                                or
+                                <code>T

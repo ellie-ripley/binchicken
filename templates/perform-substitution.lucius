@@ -1,0 +1,9 @@
+
+.conn-button {
+    width: 8rem;
+}
+
+.conn-button code {
+    color: white;
+    padding: .5rem;
+}

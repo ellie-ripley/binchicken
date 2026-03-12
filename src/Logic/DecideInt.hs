@@ -9,16 +9,12 @@ import GHC.Generics (Generic)
 
 import Logic.Arguments
 import Logic.Formulas
-  ( Atomic(..)
-  , NullaryConnective(..)
+  ( NullaryConnective(..)
   , UnaryConnective(..)
   , BinaryConnective(..)
-  , Connective(..)
   , GenFormula(..)
   , Formula
   , fum
-  , isAtomic
-  , mainConnective
   )
 import Logic.Matrices
   ( ClassicalMatrix

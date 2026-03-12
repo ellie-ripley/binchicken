@@ -1,0 +1,69 @@
+let negButton = document.getElementById("#{rawJS negButt}");
+let conjButton = document.getElementById("#{rawJS conjButt}");
+let disjButton = document.getElementById("#{rawJS disjButt}");
+let implButton = document.getElementById("#{rawJS implButt}");
+let fumButton = document.getElementById("#{rawJS fumButt}");
+let vumButton = document.getElementById("#{rawJS vumButt}");
+let submitButton = document.getElementById("#{rawJS submitButtonId}");
+
+function addToResponse (tx) {
+  let inputField = document.getElementById("#{rawJS inputFormulaId}");
+  inputField.value += tx;
+}
+
+  negButton.addEventListener("click", (function() {
+    addToResponse("¬");
+  }));
+  conjButton.addEventListener("click", (function() {
+    addToResponse("∧");
+  }));
+  disjButton.addEventListener("click", (function() {
+    addToResponse("∨");
+  }));
+  implButton.addEventListener("click", (function() {
+    addToResponse("→");
+  }));
+  fumButton.addEventListener("click", (function() {
+    addToResponse("⊥");
+  }));
+  vumButton.addEventListener("click", (function() {
+    addToResponse("⊤");
+  }));
+
+
+function reportAnswer(data) {
+  console.log("Success!");
+  console.log(data);
+  const fb = document.getElementById("#{rawJS feedbackId}");
+  fb.innerHTML = "";
+  if ("feedback" in data[1])
+  {
+    fb.innerHTML = data[1].feedback;
+  }
+  if (data[0].isCorrect) {
+    document.getElementById("#{rawJS buttonDivId}").innerHTML = "";
+  }
+  fb.innerHTML +=
+    '<p><button class="btn btn-primary" onClick="window.location.reload(true)">Next exercise</button></p>'
+}
+
+function logError(data) {
+  console.log("Error reporting response.");
+  console.log(data);
+}
+
+submitButton.addEventListener("click", (function() {
+    var ajaxData;
+    ajaxData = JSON.stringify({
+        psExerciseId: #{toJSON exid},
+        psResponse: document.getElementById("#{rawJS inputFormulaId}").value,
+    });
+    $.ajax({
+      url: '@{ajaxRoute}',
+      type: 'POST',
+      contentType: "application/json",
+      data: ajaxData,
+      success: reportAnswer,
+      error: logError
+    });
+  }));
