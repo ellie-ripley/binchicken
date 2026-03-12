@@ -52,7 +52,11 @@ import ExerciseType
   ( ExerciseTargets(..)
   , ExerciseType(..)
   )
-import Settings.Binchicken (activeExerciseTypes, targets)
+import Settings.Binchicken
+  ( ActiveET(..)
+  , rawActiveExerciseTypes
+  , targets
+  )
 
 -- | Information about a single user's progress on a single exercise type
 data Progress =
@@ -64,6 +68,7 @@ data Progress =
 
 data Correct = Correct | Incorrect
   deriving (Eq, Read, Show)
+
 
 boolToCorrect :: Bool -> Correct
 boolToCorrect True  = Correct
@@ -97,7 +102,7 @@ newtype Results a = Results { unResults :: Map ExerciseType a }
   deriving(Functor)
 
 blankResults :: Results Progress
-blankResults = Results (M.fromList $ map (\et -> (et, zeroProgress)) activeExerciseTypes)
+blankResults = Results (M.fromList $ map (\et -> (et, zeroProgress)) rawActiveExerciseTypes)
 
 data SummaryRow a = SummaryRow
   { srUid :: !(Key User)
@@ -114,7 +119,7 @@ instance ToField a => ToNamedRecord (SummaryRow a) where
 
 instance DefaultOrdered (SummaryRow a) where
   headerOrder _ =
-    let exHeaders = map (encodeUtf8 . pack . show) activeExerciseTypes
+    let exHeaders = map (encodeUtf8 . pack . show) rawActiveExerciseTypes
     in V.force . V.fromList $ ["email"] <> exHeaders 
 
 -- | Information about a collection of users' progress

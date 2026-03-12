@@ -12,6 +12,10 @@
             $else
                 <ul .ex-list>
                     $forall et <- exTypes
-                        <li>
-                            <a .col-6.ex-link href="@{exerciseRoute (snd et)}">
-                                #{fst et}. #{prettyExerciseName $ snd et}
+                        $maybe exType <- snd (snd et)
+                          <li>
+                            <a .col-6.ex-link href="@{exerciseRoute exType}">
+                                #{fst et}. #{fst (snd et)}
+                        $nothing
+                          <li>
+                              <p>#{fst et}. #{fst (snd et)}

@@ -57,7 +57,7 @@ import Control.Monad (join)
 import qualified Data.List as L
 import qualified Data.Map as M
 
-import Settings.Binchicken (activeExerciseTypes)
+import Settings.Binchicken (rawActiveExerciseTypes)
 import Scoring
   ( calculateSummary
   , displayPoints
@@ -119,7 +119,7 @@ getSeshatR = do
   (scs :: [Entity Score]) <- runDB $ selectList [] []
   (grs :: [Entity Grouping]) <- runDB $ selectList [] []
   let summ = calculateSummary $ tally usrs scs
-      exts = activeExerciseTypes
+      exts = rawActiveExerciseTypes
       groups = alignGroupings usrs grs
       yearList :: [(Text, Int)]
       yearList = map (pack . show &&& id) [2025, 2026]

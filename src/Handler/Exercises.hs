@@ -6,7 +6,7 @@
 {-# LANGUAGE TypeFamilies #-}
 module Handler.Exercises where
 
-import Foundation ( Handler )
+import Foundation ( Handler ) 
 import Import.NoFoundation
     ( ($),
       setTitle,
@@ -14,19 +14,19 @@ import Import.NoFoundation
       Int,
       Yesod(defaultLayout),
       fst,
+      map,
       null,
       snd,
       widgetFile,
       zip
     )
-import ExerciseType (prettyExerciseName)
-import Settings.Binchicken (exerciseRoute, activeExerciseTypes)
+import Settings.Binchicken (activeExerciseTypes, exerciseRoute, renderAET)
 
 
   
 getExercisesR :: Handler Html
 getExercisesR = do
-    let exTypes = zip ([(1::Int)..]) activeExerciseTypes -- list active exercises only
+    let exTypes = zip ([(1::Int)..]) (map renderAET activeExerciseTypes) -- list active exercises only
     defaultLayout $ do
         setTitle "Exercises"
         $(widgetFile "exercises")

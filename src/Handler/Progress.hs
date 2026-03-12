@@ -12,7 +12,7 @@ import ExerciseType
       ExerciseTargets(..),
       prettyExerciseName
     )
-import Settings.Binchicken (targets, fullStreak, exerciseRoute, activeExerciseTypes)
+import Settings.Binchicken (targets, fullStreak, exerciseRoute, activeExerciseTypes, renderAET)
 import Foundation
     ( Route(..),
       Handler )
@@ -32,6 +32,7 @@ import Import.NoFoundation
       Text,
       error,
       fst,
+      map,
       null,
       pack,
       redirect,
@@ -65,7 +66,7 @@ import Scoring
 
 getProgressR :: Handler Html
 getProgressR = do
-    let exTypes = zip ([(1::Int)..]) activeExerciseTypes -- Show only active exercises
+    let exTypes = zip ([(1::Int)..]) (map renderAET activeExerciseTypes) -- Show only active exercises
     muid <- maybeAuthId
     case muid of
       Nothing -> redirect HomeR

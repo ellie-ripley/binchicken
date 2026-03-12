@@ -1,11 +1,23 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Settings.Binchicken where
 
+import Data.Text (Text)
 
-import ExerciseType (ExerciseType(..), ExerciseTargets(..))
-import Logic.Formulas (Atomic(..), NullaryConnective(..), UnaryConnective(..), BinaryConnective(..), Connective(..), atomic)
+import ExerciseType
+  (ExerciseType(..)
+  , ExerciseTargets(..)
+  , prettyExerciseName
+  )
+import Logic.Formulas
+  ( Atomic(..)
+  , NullaryConnective(..)
+  , UnaryConnective(..)
+  , BinaryConnective(..)
+  , Connective(..)
+  , atomic)
 import Foundation (Route(..), BinChicken)
 
 
@@ -182,14 +194,36 @@ exerciseRoute = \case
   BetaReduction                -> BetaReductionR
   PerformSubstitution          -> PerformSubstitutionR
 
+data ActiveET
+  = Placeholder
+  | Active ExerciseType
+  deriving (Eq, Show)
+
 -- | List of exercise types in actual use
-activeExerciseTypes :: [ExerciseType]
+activeExerciseTypes :: [ActiveET]
 activeExerciseTypes =
-  [ IdentifyMainConnective
-  , PerformSubstitution
-  , EvaluateBoolean
-  , EvaluateStrongKleene
-  , EvaluateDunnBelnap
-  , CounterexampleClassical
-  , CounterexampleNonclassical
+  [ Active IdentifyMainConnective
+  , Active PerformSubstitution
+  , Active EvaluateBoolean
+  , Active EvaluateStrongKleene
+  , Active EvaluateDunnBelnap
+  , Active CounterexampleClassical
+  , Active CounterexampleNonclassical
+  , Placeholder
+  , Placeholder
+  , Placeholder
   ]
+
+
+renderAET:: ActiveET -> (Text, Maybe ExerciseType)
+renderAET aet =
+  case aet of
+    Placeholder -> ("Exercise not yet available", Nothing)
+    Active et   -> (prettyExerciseName et, Just et)
+
+rawActiveExerciseTypes :: [ExerciseType]
+rawActiveExerciseTypes = go activeExerciseTypes
+  where
+    go [] = []
+    go (Placeholder:xs) = go xs
+    go (Active et:xs) = et : go xs
