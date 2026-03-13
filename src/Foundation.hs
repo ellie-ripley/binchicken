@@ -4,6 +4,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE ExplicitForAll #-}
 {-# LANGUAGE RankNTypes #-}
@@ -13,6 +14,7 @@
 module Foundation where
 
 import Data.Kind (Type)
+import Data.Type.Equality (type (~))
 
 import Import.NoFoundation
     ( snd,

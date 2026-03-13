@@ -58,7 +58,6 @@ import Scoring
   , SummaryRow(..)
   , calcMilestone
   , calculateSummaryRow
-  , displayPoints
   , pointsEarned
   , renderPoints
   , tally

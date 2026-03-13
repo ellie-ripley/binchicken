@@ -455,20 +455,20 @@ randomLambdaTermFixedComplexity
 randomLambdaTermFixedComplexity vrs 0 g =
   let (lvr, g1) = randomElement vrs g in (TVar lvr, g1)
 randomLambdaTermFixedComplexity vrs w g =
-  let (coin, g1) = SR.randomR (1 :: Int, 2) g
+  let (coin, g1) = SR.random g
   in case coin of
-    1 -> let (leftWeight, g2) = SR.randomR (0, w) g1
-             (left, g3)  = randomLambdaTermFixedComplexity vrs leftWeight g2
-             (right, g4) = randomLambdaTermFixedComplexity vrs (w - leftWeight) g3
-         in (TApp left right, g4)
-    2 -> let (body, g2) = randomLambdaTermFixedComplexity vrs (w - 1) g1
-             fvs = freeVars body
-             numFVs = length fvs
-             (newVarIx, g3) = SR.randomR (0, numFVs) g2
-             (newVar, g4) = case newVarIx of
-                              0 -> randomElement vrs g3
-                              n -> (fvs !! (n - 1), g3)
-         in (TLam newVar body, g4)
+    True  -> let (leftWeight, g2) = SR.randomR (0, w) g1
+                 (left, g3)  = randomLambdaTermFixedComplexity vrs leftWeight g2
+                 (right, g4) = randomLambdaTermFixedComplexity vrs (w - leftWeight) g3
+             in (TApp left right, g4)
+    False -> let (body, g2) = randomLambdaTermFixedComplexity vrs (w - 1) g1
+                 fvs = freeVars body
+                 numFVs = length fvs
+                 (newVarIx, g3) = SR.randomR (0, numFVs) g2
+                 (newVar, g4) = case newVarIx of
+                                  0 -> randomElement vrs g3
+                                  n -> (fvs !! (n - 1), g3)
+             in (TLam newVar body, g4)
 
 randomLambdaTerm
   :: RandomGen g

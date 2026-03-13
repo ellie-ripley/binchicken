@@ -29,26 +29,34 @@ import Import.NoFoundation ( Auth
                            , whamlet
                            )
 
+import Data.Maybe (listToMaybe)
 import Data.Text (Text, unpack)
 import System.Process (callCommand)
 
 import Yesod.Auth.Email
+    ( YesodAuthEmail, forgotPasswordR, loginR, registerR )
 import qualified Yesod.Auth.Message as Msg
 
 mailgunDomain :: Text
 mailgunDomain = "mail.binchicken.one"
 
 mailgunApiKey :: IO Text
-mailgunApiKey = fromString . head . lines <$> readFile "/opt/binchicken/mailgun_creds.config"
+mailgunApiKey = do
+  fileConts <- readFile "/opt/binchicken/mailgun_creds.config"
+  let fstLine = listToMaybe . lines $ fileConts
+  case fstLine of
+    Nothing -> return ""
+    Just l  -> return (fromString l)
 
 verEmailBody
   :: Text -- ^ the verification url
   -> Text -- ^ the full text of the email to be sendStatusJSON
-verEmailBody verurl = "You are receiving this email because someone is either registering this email address at Binchicken or attempting to reset your password there. "
-                        <> "You can confirm that this is you by clicking on this link: "
-                        <> verurl
-                        <> " Thanks! "
-                        <> "If you did not request this email, please ignore it; you will not be registered, and if you are registered your password will not be changed."
+verEmailBody verurl =
+  "You are receiving this email because someone is either registering this email address at Binchicken or attempting to reset your password there. "
+  <> "You can confirm that this is you by clicking on this link: "
+  <> verurl
+  <> " Thanks! "
+  <> "If you did not request this email, please ignore it; you will not be registered, and if you are registered your password will not be changed."
 
 binSendVerifyEmail
   :: Text -- ^ email address to send to
