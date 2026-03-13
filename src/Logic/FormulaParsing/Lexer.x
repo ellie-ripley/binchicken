@@ -19,6 +19,8 @@ tokens :-
   ¬             { \_ -> TokNeg }
   _\|_          { \_ -> TokFum }
   ⊥             { \_ -> TokFum }
+  T             { \_ -> TokVum }
+  ⊤             { \_ -> TokVum }
   \(            { \_ -> TokLPar }
   \)            { \_ -> TokRPar }
   $atom         { \s -> TokAtom s }
@@ -32,6 +34,7 @@ data Token
   | TokImpl
   | TokNeg
   | TokFum
+  | TokVum
   | TokLPar
   | TokRPar
   deriving (Eq, Show)

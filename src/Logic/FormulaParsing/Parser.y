@@ -18,6 +18,7 @@ import Logic.Formulas
     im  { TokImpl }
     ng  { TokNeg }
     fm  { TokFum }
+    vm  { TokVum }
     '(' { TokLPar }
     ')' { TokRPar }
     atm { TokAtom $$ }
@@ -34,6 +35,7 @@ fmla
   | fmla im fmla   { B Implication $1 $3 }
   | ng fmla        { U Negation $2 }
   | fm             { N Falsum }
+|   vm             { N Verum }
   | '(' fmla ')'   { $2 }
 
 {
