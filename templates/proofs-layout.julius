@@ -1,5 +1,35 @@
 var prf = document.getElementById("#{rawJS proofId}");
 
+let negButton = document.getElementById("#{rawJS negButt}");
+let conjButton = document.getElementById("#{rawJS conjButt}");
+let disjButton = document.getElementById("#{rawJS disjButt}");
+let implButton = document.getElementById("#{rawJS implButt}");
+let fumButton = document.getElementById("#{rawJS fumButt}");
+let vumButton = document.getElementById("#{rawJS vumButt}");
+let submitButton = document.getElementById("#{rawJS submitButtonId}");
+
+function copyToClipboard (tx) {
+  navigator.clipboard.writeText(tx);
+}
+
+  negButton.addEventListener("click", (function() {
+    copyToClipboard("¬");
+  }));
+  conjButton.addEventListener("click", (function() {
+    copyToClipboard("∧");
+  }));
+  disjButton.addEventListener("click", (function() {
+    copyToClipboard("∨");
+  }));
+  implButton.addEventListener("click", (function() {
+    copyToClipboard("→");
+  }));
+  fumButton.addEventListener("click", (function() {
+    copyToClipboard("⊥");
+  }));
+  vumButton.addEventListener("click", (function() {
+    copyToClipboard("⊤");
+  }));
 
 var root1 = new ProofRoot(
 {
@@ -54,7 +84,7 @@ function logError(data) {
 }
 
 $(function() {
-  $("##{rawJS buttonSubmitId}").click(function() {
+  $("##{rawJS submitButtonId}").click(function() {
     var ajaxData;
     if (prf2) {
       ajaxData = JSON.stringify({
@@ -76,20 +106,5 @@ $(function() {
       success: reportAnswer,
       error: logError
     });
-  });
-  $("##{rawJS negButt}").click(function() {
-    navigator.clipboard.writeText("¬");
-  });
-  $("##{rawJS conjButt}").click(function() {
-    navigator.clipboard.writeText("∧");
-  });
-  $("##{rawJS disjButt}").click(function() {
-    navigator.clipboard.writeText("∨");
-  });
-  $("##{rawJS implButt}").click(function() {
-    navigator.clipboard.writeText("→");
-  });
-  $("##{rawJS fumButt}").click(function() {
-    navigator.clipboard.writeText("⊥");
   });
 });

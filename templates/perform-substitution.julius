@@ -7,7 +7,7 @@ let vumButton = document.getElementById("#{rawJS vumButt}");
 let submitButton = document.getElementById("#{rawJS submitButtonId}");
 
 function addToResponse (tx) {
-  let inputField = document.getElementById("#{rawJS inputFormulaId}");
+  let inputField = document.getElementById("{rawJS inputFormulaId}");
   inputField.value += tx;
 }
 

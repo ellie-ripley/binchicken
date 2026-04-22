@@ -147,8 +147,8 @@ getProofRequirementsR = do
   requirements <- liftIO $ randomRequirementsIO fmSetts assumptionSetts
   let ex = Exercise { exerciseExerciseType = ProofWithRequirements
                     , exerciseExerciseContent = encodePR requirements }
-      (buttonSubmitId, buttonDivId) = buttonIds
-      (negButt, conjButt, disjButt, implButt, fumButt) = connButtonIds
+      (submitButtonId, buttonDivId) = buttonIds
+      (negButt, conjButt, disjButt, implButt, fumButt, vumButt) = connButtonIds
       (proofIdPrefix, feedbackId) = divIds
       proofId = proofIdPrefix <> "1"
       startingConclusion = reqConclusion requirements
@@ -265,8 +265,8 @@ postProofRequirementsR = do
 buttonIds :: (Text, Text)
 buttonIds = ("js-button-submit-proof", "js-button-div")
 
-connButtonIds :: (Text, Text, Text, Text, Text)
-connButtonIds = ("js-neg-button", "js-conj-button", "js-disj-button", "js-impl-button", "js-fum-button")
+connButtonIds :: (Text, Text, Text, Text, Text, Text)
+connButtonIds = ("js-neg-button", "js-conj-button", "js-disj-button", "js-impl-button", "js-fum-button", "js-vum-button")
 
 divIds :: (Text, Text)
 divIds = ("js-proof", "js-feedback")

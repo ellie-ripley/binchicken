@@ -209,7 +209,7 @@ activeExerciseTypes =
   , Active EvaluateDunnBelnap
   , Active CounterexampleClassical
   , Active CounterexampleNonclassical
-  , Placeholder
+  , Active ProofWithRequirements
   , Placeholder
   , Placeholder
   ]
