@@ -66,6 +66,13 @@
                                 <code>⊥
                                 or
                                 <code>_|_
+                     <tr>
+                        <td>Verum
+                        <td>
+                            <button .btn.btn-primary.conn-button ##{vumButt}>
+                                <code>⊤
+                                or
+                                <code>T
             <li>For practice entering proofs, you can check out <a href=@{ProofPlaygroundR}>the proof playground</a>
             <li>For rule labels, use the connective plus <code>I</code> for introductions or <code>E</code> for eliminations. For disjunction introductions and conjunction eliminations, you should add in addition an <code>L</code> or <code>R</code> as appropriate. For example, you might write <code>#{ruleName $ RB CI}</code> or <code>#{ruleName $ RU CEL}</code>.
             <li>For discharging rules (that's <code>#{ruleName $ RU (II "")}</code>, <code>#{ruleName $ RU (NI "")}</code>, and <code>#{ruleName $ RT (DE "")}</code>), add a numeral to the end of the rule name as a discharge marker. For example, you might use <code>#{ruleName $ RU (II "5")}</code> or <code>#{ruleName $ RT (DE "23")}</code>.

@@ -1,3 +1,6 @@
+// Ellie Ripley's modified version of Graham Leach-Krouse's proof.js
+
+
 class DeductionNode {
 
     static set Clipboard(s) {
@@ -56,7 +59,7 @@ class DeductionNode {
         })
         if (!this.parentNode) elt.rootElt = _ => elt
         else elt.rootElt = _ => elt.parentElement.parentElement.rootElt()
-        this.forest.map(n => {return n.renderOn(elt.forest)})[0]
+        this.forest.map(n => {return n.renderOn(elt.forest)})
         elt.addRule = () => {
             var childElt = elt.forest.lastChild || false
             if (childElt) {
@@ -143,6 +146,7 @@ class DeductionNode {
         this.on("newChild", child => { 
             child.renderOn(elt.forest)
             if (this.forest.length == 1) elt.addRule() 
+            normalise(elt)
         });
 
         elt.input.addEventListener('keydown', e => {if (e.code == "KeyZ" && e.ctrlKey) e.preventDefault()})
@@ -154,16 +158,16 @@ class DeductionNode {
             if (e.code == "Enter" && e.ctrlKey && e.shiftKey) {
                 e.preventDefault()
                 this.addParent()
-            } else if (e.code == "Enter" && e.ctrlKey) {
+            } else if ((e.code == "Enter" && e.ctrlKey) || (e.code == "KeyW" && e.ctrlKey)) {
                 e.preventDefault()
                 this.addChild()
                 try {parentElt.input.focus()} catch {elt.rootElt().input.focus()}
                 if (this.forest.length == 1) elt.rule.focus();
-                else elt.forest.firstChild.input.focus();
+                else elt.forest.lastChild.input.focus();
             } else if (e.code == "Enter") {
                 e.preventDefault();
                 this.addSiblingAtEnd();
-                elt.parentElement.firstChild.input.focus()
+                elt.parentElement.lastChild.input.focus()
             } else if (e.code == "Backspace" && e.ctrlKey) {
                 this.remove()
                 try {
@@ -203,7 +207,7 @@ class DeductionNode {
         elt.label.appendChild(document.createElement("div")).appendChild(elt.input);
         elt.label.appendChild(document.createElement("div"));
 
-        target.prepend(elt);
+        target.appendChild(elt);
 
         return elt
     }
@@ -330,6 +334,37 @@ class DeductionNode {
     };
 };
 
+function normalise(elt) {
+    var forest = elt.forest;
+    if (!forest || !forest.children.length) return;
+    console.log(forest.children.length)
+    
+    // recurse into children first
+    for (var i = 0; i < forest.children.length; i++) {
+        normalise(forest.children[i]);
+    }
+    
+    // find the rule container if there is one
+    var ruleContainer = null;
+    for (var i = 0; i < forest.children.length; i++) {
+        var thirdDiv = forest.children[i].lastChild.lastChild;
+        if (thirdDiv && thirdDiv.classList.contains("rule")) {
+            ruleContainer = thirdDiv;
+            break;
+        }
+    }
+    
+    if (!ruleContainer) return;
+    
+    // move it to the last child's third div
+    var lastChild = forest.lastChild;
+    var lastChildThirdDiv = lastChild.lastChild.lastChild;
+    if (lastChildThirdDiv !== ruleContainer) {
+        lastChildThirdDiv.parentNode.removeChild(lastChildThirdDiv);
+        lastChild.lastChild.appendChild(ruleContainer);
+    }
+}
+
 
 class DeductionRoot extends DeductionNode {
     constructor(obj) {
@@ -384,3 +419,4 @@ class ProofRoot extends DeductionRoot {
 
     addParent () { alert("Can't add a parent to a read-only root node") }
 };
+

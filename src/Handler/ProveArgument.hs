@@ -107,8 +107,8 @@ getProveArgumentR = do
   targetArg@(Argument prems conc) <- liftIO $ randomIntValidArgumentIO fmSetts
   let ex = Exercise { exerciseExerciseType = ProveAnArgument
                     , exerciseExerciseContent = encodePV targetArg }
-      (buttonSubmitId, buttonDivId) = buttonIds
-      (negButt, conjButt, disjButt, implButt, fumButt) = connButtonIds
+      (submitButtonId, buttonDivId) = buttonIds
+      (negButt, conjButt, disjButt, implButt, fumButt, vumButt) = connButtonIds
       (proofIdPrefix, feedbackId, displayArgumentId) = divIds
       proofId = proofIdPrefix <> "1"
       startingConclusion = atom "p"
@@ -116,6 +116,15 @@ getProveArgumentR = do
       pExInstructions =
         [whamlet|<p>Here is an intuitionistically valid argument. Give a proof of it in NJ. (You might want to work this out on scratch paper first!)|]
       pExEntry = singleProofEntry proofId ""
+      pExContent =
+        [whamlet|
+            <ul .argument ##{displayArgumentId}>
+                $forall prem <- prems
+                    <li>#{displayFormula prem}
+                <li>----------------
+                <li>#{displayFormula conc}
+                |]
+      pExContentPost = toJSON targetArg
       ajaxRoute = ProveArgumentR
   exid <- runDB $ insert ex
   maybeCurrentUserId <- maybeAuthId
@@ -129,16 +138,16 @@ getProveArgumentR = do
       _ <- runDB $ insert sent
       defaultLayout $ do
         setTitle "Proofs in NJ"
-        toWidgetHead [hamlet|<script src=/static/js/proof.js>|]
+        toWidgetHead [hamlet|<script src=/static/js/proof2.js>|]
         toWidgetHead
             [hamlet|<link rel=stylesheet href=static/css/proof.css type="text/css" media="screen" title="no title" charset="utf-8">|]
-        $(widgetFile "prove-int-layout")
+        $(widgetFile "proofs-layout")
     Nothing -> defaultLayout $ do
       setTitle "Proofs in NJ"
-      toWidgetHead [hamlet|<script src=/static/js/proof.js>|]
+      toWidgetHead [hamlet|<script src=/static/js/proof2.js>|]
       toWidgetHead
           [hamlet|<link rel=stylesheet href=static/css/proof.css type="text/css" media="screen" title="no title" charset="utf-8">|]
-      $(widgetFile "prove-int-layout")
+      $(widgetFile "proofs-layout")
 
 -- TODO: This is a hack, setting up a fake ridiculous argument that is not generatable,
 -- for use when we can't read an argument out of the database-stored exercise, which shouldn't happen
@@ -183,8 +192,8 @@ postProveArgumentR = do
 buttonIds :: (Text, Text)
 buttonIds = ("js-button-submit-proof", "js-button-div")
 
-connButtonIds :: (Text, Text, Text, Text, Text)
-connButtonIds = ("js-neg-button", "js-conj-button", "js-disj-button", "js-impl-button", "js-fum-button")
+connButtonIds :: (Text, Text, Text, Text, Text, Text)
+connButtonIds = ("js-neg-button", "js-conj-button", "js-disj-button", "js-impl-button", "js-fum-button", "js-vum-button")
 
 divIds :: (Text, Text, Text)
 divIds = ("js-proof", "js-feedback", "js-display-argument")
