@@ -25,6 +25,7 @@ import Settings.Binchicken
   ( RandomArgumentSettings(..)
   , RandomFormulaSettings(..)
   , RandomSubstitutionSettings(..)
+  , RandomIntValidArgSettings(..)
   )
 
 
@@ -217,28 +218,32 @@ maybeToEither x = \case
                         Just y  -> Right y
 
 
--- | gives a random DId or FE
--- TODO: weightings are currently hardcoded here, and throughout other argument-building functions
--- break this out into a "Settings" argument?
+-- | gives a random DId or FE/VI (latter weighting hardcoded at 50/50)
 randomAxiom
   :: RandomGen g
   => RandomFormulaSettings
+  -> RandomIntValidArgSettings
   -> g
   -> (Argument, g)
-randomAxiom setts g =
-  let (numPrems, g1) = SR.randomR (1, 2) g
-      (coin, g2) = SR.randomR (0 :: Int, 99) g1
-      threshold = 95 -- percent chance this is a DId rather than FE
-      (prems, g3) = if coin < threshold
-                    then randomFormulas setts numPrems g2
-                    else let (coin2, h) = SR.random g2
-                             (fm, h1) = randomFormula setts h
+randomAxiom fmSetts ivSetts g =
+  let (weakenCoin, g1) = SR.randomR (0 :: Int, 99) g
+      (idCoin, g2) = SR.randomR (0 :: Int, 99) g1
+      (feviCoin, g2') = SR.random g2 -- True: FE, False: VI
+      numPrems = if weakenCoin < (kProbability ivSetts)
+                 then 2
+                 else 1
+      (prems, g3) = if (idCoin < (idProbability ivSetts) ||  not feviCoin) 
+                    then randomFormulas fmSetts numPrems g2'
+                    else let (coin2, h) = SR.random g2'
+                             (fm, h1) = randomFormula fmSetts h
                          in if coin2
                             then ([N Falsum, fm], h1)
                             else ([fm, N Falsum], h1)
-      (conc, g4) = if coin < threshold
-                   then randomElement prems g3
-                   else randomFormula setts g3
+      (conc, g4) = if (not feviCoin)
+                      then (vum, g3)
+                      else if idCoin < (idProbability ivSetts)
+                           then randomElement prems g3
+                           else randomFormula fmSetts g3
   in (Argument (nub prems) conc, g4)
 
 -- | Flips a weighted coin; Int is percent chance to Remove
@@ -258,16 +263,17 @@ addRandomACL
   :: RandomGen g
   => Argument
   -> RandomFormulaSettings
+  -> RandomIntValidArgSettings
   -> g
   -> Either Text (Argument, g)
-addRandomACL arg@(Argument prems _) setts g
+addRandomACL arg@(Argument prems _) fmSetts ivSetts g
   | null prems = Left "Error: ACL with empty premises"
   | otherwise  = Right (result, h)
   where
     (side, g1) = SR.randomR (minBound, maxBound) g
-    (remove, g2) = randomRemove 80 g1
+    (remove, g2) = randomRemove (removeProbability ivSetts) g1
     (activePrem, g3) = randomElement prems g2
-    (otherConj, g4) = randomFormula setts g3
+    (otherConj, g4) = randomFormula fmSetts g3
     activeConc = case side of
                    LeftSide -> conj activePrem otherConj
                    RightSide -> conj otherConj activePrem
@@ -278,16 +284,18 @@ addRandomACL arg@(Argument prems _) setts g
 addRandomMCL
   :: RandomGen g
   => Argument
+  -> RandomIntValidArgSettings
   -> g
   -> Either Text (Argument, g)
-addRandomMCL arg@(Argument prems _) g
+addRandomMCL arg@(Argument prems _) ivSetts g
   | null prems = Left "Error: MCL with empty premises"
   | otherwise  = Right (result, h)
   where
+    remProb = removeProbability ivSetts
     (lc, g1) = randomElement prems g
     (rc, g2) = randomElement prems g1
-    (reml, g3) = randomRemove 80 g2
-    (remr, g4) = randomRemove 80 g3
+    (reml, g3) = randomRemove remProb g2
+    (remr, g4) = randomRemove remProb g3
     (result, h) = case multiplicativeConjLeft arg (conj lc rc) reml remr of
                     Nothing -> error "Error 3098: this is an error in the website; please let me know about it!"
                     Just res -> (res, g4)
@@ -298,16 +306,18 @@ addRandomMDL
   :: RandomGen g
   => Argument
   -> Argument
+  -> RandomIntValidArgSettings
   -> g
   -> Either Text (Argument, g)
-addRandomMDL a1@(Argument ps1 _) a2@(Argument ps2 _) g
+addRandomMDL a1@(Argument ps1 _) a2@(Argument ps2 _) ivSetts g
   | null ps1 || null ps2 = Left "Error: MDL with some empty premises"
   | otherwise = Right (result, h)
   where
+    remProb = removeProbability ivSetts
     (ld, g1) = randomElement ps1 g
     (rd, g2) = randomElement ps2 g1
-    (reml, g3) = randomRemove 80 g2
-    (remr, g4) = randomRemove 80 g3
+    (reml, g3) = randomRemove remProb g2
+    (remr, g4) = randomRemove remProb g3
     (side, g5) = SR.randomR (minBound, maxBound) g4
     (result, h) = case multiplicativeDisjLeft a1 a2 (disj ld rd) reml remr side of
                    Nothing -> error "Error 0987: error in the website; please let me know!"
@@ -342,28 +352,31 @@ addRandomMIR
   :: RandomGen g
   => Argument
   -> RandomFormulaSettings
+  -> RandomIntValidArgSettings
   -> g
   -> (Argument, g)
-addRandomMIR arg@(Argument prems _) setts g
-  | null prems = let (ante, g1) = randomFormula setts g
+addRandomMIR arg@(Argument prems _) fmSetts ivSetts g
+  | null prems = let (ante, g1) = randomFormula fmSetts g
                  in (multiplicativeImplRight arg ante Remove, g1)
-  | otherwise  = let (coin, g1) = SR.randomR (0, 99) g
-                     (ante, g2) = if coin < (80 :: Int)
-                                  then randomElement prems g1
-                                  else randomFormula setts g1
-                     (remove, g3) = randomRemove 85 g2
+  | otherwise  = let vacProb = vacProbability ivSetts
+                     (coin, g1) = SR.randomR (0, 99) g
+                     (ante, g2) = if coin < vacProb
+                                  then randomFormula fmSetts g1
+                                  else randomElement prems g1
+                     (remove, g3) = randomRemove (removeProbability ivSetts) g2
                 in (multiplicativeImplRight arg ante remove, g3)
 
 addRandomNR
   :: RandomGen g
   => Argument
+  -> RandomIntValidArgSettings
   -> g
   -> Either Text (Argument, g)
-addRandomNR arg@(Argument prems conc) g
+addRandomNR arg@(Argument prems conc) ivSetts g
   | null prems = Left "Error: NR with empty premises"
   | not $ conc == fum = Left "Error: NR with non-falsum conclusion"
   | otherwise = let (fm, g1) = randomElement prems g
-                    (remove, g2) = randomRemove 80 g1
+                    (remove, g2) = randomRemove (removeProbability ivSetts) g1
                     mres = negationRight arg fm remove
                 in case mres of
                      Nothing -> Left "Error: bad NR"
@@ -373,30 +386,32 @@ addRandomUnaryRule
   :: RandomGen g
   => Argument
   -> RandomFormulaSettings
+  -> RandomIntValidArgSettings
   -> g
   -> Either Text (Argument, g)
-addRandomUnaryRule arg@(Argument prems conc) setts g =
+addRandomUnaryRule arg@(Argument prems conc) fmSetts ivSetts g =
   let dropNR = if conc == fum then [] else [NR]
       dropCL = if null prems then [ACL, MCL] else []
       rulesToDrop = dropNR <> dropCL
       rulesToChooseFrom = sequentRulesWithArity 1 \\ rulesToDrop
       (rl, g1) = randomElement rulesToChooseFrom g
   in case rl of
-       ACL -> addRandomACL arg setts g1
-       MCL -> addRandomMCL arg g1
-       ADR -> Right $ addRandomADR arg setts g1
-       MIR -> Right $ addRandomMIR arg setts g1
+       ACL -> addRandomACL arg fmSetts ivSetts g1
+       MCL -> addRandomMCL arg ivSetts g1
+       ADR -> Right $ addRandomADR arg fmSetts g1
+       MIR -> Right $ addRandomMIR arg fmSetts ivSetts g1
        NL -> Right $ (negationLeft arg, g1)
-       NR -> addRandomNR arg g1
+       NR -> addRandomNR arg ivSetts g1
        x   -> Left ("Error: A rule with the wrong arity (not 1) snuck in! " <> (pack $ show x))
 
 addRandomBinaryRule
   :: RandomGen g
   => Argument
   -> Argument
+  -> RandomIntValidArgSettings
   -> g
   -> Either Text (Argument, g)
-addRandomBinaryRule a1@(Argument ps1 _) a2@(Argument ps2 _) g =
+addRandomBinaryRule a1@(Argument ps1 _) a2@(Argument ps2 _) ivSetts g =
   let dropMIL = if null ps2 then [MIL] else []
       dropMDL = if null ps1 || null ps2 then [MDL] else []
       rulesToDrop = dropMIL <> dropMDL
@@ -404,7 +419,7 @@ addRandomBinaryRule a1@(Argument ps1 _) a2@(Argument ps2 _) g =
       (rl, g1) = randomElement rulesToChooseFrom g
   in case rl of
        MCR -> Right $ (multiplicativeConjRight a1 a2, g1)
-       MDL -> addRandomMDL a1 a2 g1
+       MDL -> addRandomMDL a1 a2 ivSetts g1
        MIL -> addRandomMIL a1 a2 g1
        x   -> Left ("A rule with the wrong arity (not 2) snuck in! " <> (pack $ show x))
 
@@ -412,34 +427,37 @@ addRandomBinaryRule a1@(Argument ps1 _) a2@(Argument ps2 _) g =
 randomIntValidArgument
   :: RandomGen g
   => RandomFormulaSettings
-  -> Int -- ^ max rule depth
+  -> RandomIntValidArgSettings
   -> g
   -> (Argument, g)
-randomIntValidArgument setts 0 g = randomAxiom setts g
-randomIntValidArgument setts maxDepth g
-  | maxDepth < 0 = error "Can't make a proof with negative size; please report this error!"
+randomIntValidArgument fmSetts ivSetts g
+  | maxRuleDepth ivSetts <= 0 = randomAxiom fmSetts ivSetts g
   | otherwise = let (coin, g1) = SR.randomR (0 :: Int, 99) g
-                in if coin > 95 -- chance to keep going at each step
-                   then randomAxiom setts g1
+                in if coin > (continueProbability ivSetts) -- chance to keep going at each step
+                   then randomAxiom fmSetts ivSetts g1
                    else let (arity, g2) = SR.randomR (1 :: Int, 2) g1
+                            newIvSetts = ivSetts { maxRuleDepth = (maxRuleDepth ivSetts) - 1 }
                         in case arity of
                             1 ->
-                              let (a1, g3) = randomIntValidArgument setts (maxDepth - 1) g2
-                                  mres = addRandomUnaryRule a1 setts g3
+                              let (a1, g3) = randomIntValidArgument fmSetts newIvSetts g2
+                                  mres = addRandomUnaryRule a1 fmSetts ivSetts g3
                               in case mres of
                                 Left err -> error ("Problem in the recursion alas: " <> unpack err)
                                 Right res -> res
                             2 ->
-                              let (a1, g3) = randomIntValidArgument setts (maxDepth - 1) g2
-                                  (a2, g4) = randomIntValidArgument setts (maxDepth - 1) g3
-                                  mres = addRandomBinaryRule a1 a2 g4
+                              let (a1, g3) = randomIntValidArgument fmSetts newIvSetts g2
+                                  (a2, g4) = randomIntValidArgument fmSetts newIvSetts g3
+                                  mres = addRandomBinaryRule a1 a2 ivSetts g4
                               in case mres of
                                 Left err -> error ("Problem in the other recursion: " <> unpack err)
                                 Right res -> res
                             _ -> error "liuhfdsljn"
 
-randomIntValidArgumentIO :: RandomFormulaSettings -> IO Argument
-randomIntValidArgumentIO setts = SR.getStdRandom $ randomIntValidArgument setts 2
+randomIntValidArgumentIO
+  :: RandomFormulaSettings
+  -> RandomIntValidArgSettings
+  -> IO Argument
+randomIntValidArgumentIO fmSetts ivSetts = SR.getStdRandom $ randomIntValidArgument fmSetts ivSetts
 
 
 -- SECTION: Lambda calculus terms

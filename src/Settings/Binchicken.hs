@@ -25,7 +25,7 @@ import Foundation (Route(..), BinChicken)
 -- | May cause errors if things aren't sensible
 data RandomFormulaSettings =
   RandomFormulaSettings
-    { rfDegreeWeights :: [Double]
+    { rfDegreeWeights :: [Double]  -- ^ picks a degree for the formula to have: eg [1, 2, 3] has 1/6 chance for degree 0, 2/6 for 1, 3/6 for 2
     , rfAtomics       :: [Atomic]
     , rfNullaryConns  :: [NullaryConnective]
     , rfUnaryConns    :: [UnaryConnective]
@@ -36,7 +36,7 @@ data RandomFormulaSettings =
 defRandomFormulaSettings :: RandomFormulaSettings
 defRandomFormulaSettings =
   RandomFormulaSettings
-        { rfDegreeWeights = [1, 2, 2, 2, 1]
+        { rfDegreeWeights = [1, 2, 3, 2, 1]
         , rfAtomics = map atomic ['a'..'z']
         , rfNullaryConns = [Falsum, Verum]
         , rfUnaryConns = [Negation]
@@ -159,6 +159,27 @@ defNormalizeRequirementSettings =
     , nrrfConclusion = defProofRandomFormulaSettings
     , nrMinLength = 1
     , nrMaxLength = 3
+    }
+
+data RandomIntValidArgSettings =
+  RandomIntValidArgSettings
+    { idProbability :: Int       -- ^ 0 to 99, percent chance that each axiom is ID rather than FE/VI (with latter choice hardcoded 50/50 in randomAxiom)
+    , kProbability :: Int        -- ^ 0 to 99, percent chance to weaken a random formula into an axiom 
+    , removeProbability :: Int   -- ^ 0 to 99, percent chance to remove a used premise (ie in additive conj L)
+    , vacProbability :: Int      -- ^ 0 to 99, percent chance to vacuously discharge in mult. impl R
+    , continueProbability :: Int -- ^ 0 to 99, percent chance to add complexity if max depth not yet met
+    , maxRuleDepth :: Int        -- ^ what it says on the tin
+    }
+
+defRandomIntValidArgSettings :: RandomIntValidArgSettings
+defRandomIntValidArgSettings =
+  RandomIntValidArgSettings
+    { idProbability = 95
+    , kProbability = 10
+    , removeProbability = 85
+    , vacProbability = 15
+    , continueProbability = 97
+    , maxRuleDepth = 2
     }
 
 targets :: ExerciseType -> ExerciseTargets

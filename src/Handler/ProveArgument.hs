@@ -78,7 +78,12 @@ import Logic.Proofs
       CheckProofOf(ProofOfArgument) )
 import Logic.Random (randomIntValidArgumentIO)
 import Scoring (boolToCorrect)
-import Settings.Binchicken (RandomFormulaSettings(..), defaultRandomFormulaSettings)
+import Settings.Binchicken
+  ( RandomFormulaSettings(..)
+  , RandomIntValidArgSettings(..)
+  , defaultRandomFormulaSettings
+  , defRandomIntValidArgSettings
+  )
 
 
 
@@ -95,6 +100,9 @@ instance FromJSON PRAttempt where
 fmSetts :: RandomFormulaSettings
 fmSetts = defaultRandomFormulaSettings ProveAnArgument
 
+ivSetts :: RandomIntValidArgSettings
+ivSetts = defRandomIntValidArgSettings
+
 -- | want decodePV (encodePV ta) == ta, for all Arguments ta
 decodePV :: Text -> Maybe Argument
 decodePV tx = decodeStrict $ encodeUtf8 tx
@@ -104,7 +112,7 @@ encodePV pr = decodeUtf8 . toStrict $ encode pr
 
 getProveArgumentR :: Handler Html
 getProveArgumentR = do
-  targetArg@(Argument prems conc) <- liftIO $ randomIntValidArgumentIO fmSetts
+  targetArg@(Argument prems conc) <- liftIO $ randomIntValidArgumentIO fmSetts ivSetts
   let ex = Exercise { exerciseExerciseType = ProveAnArgument
                     , exerciseExerciseContent = encodePV targetArg }
       (submitButtonId, buttonDivId) = buttonIds
