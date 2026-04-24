@@ -36,6 +36,7 @@ import Logic.PreProofs
     , TrinaryRule(..)
     , BinaryRule(..)
     , UnaryRule(..)
+    , NullaryRule(..)
     , Rule(..)
     , ppConclusion
     , ppOpenAssumptions
@@ -91,6 +92,10 @@ lookForDischarge (lb, fm) ((clb, crl, cfm):cs)
 checkProofInContext :: [(Text, Rule, Formula)] -> PreProof -> ProofStatus
 checkProofInContext _ (Open _) = GoodProof
 checkProofInContext con (Discharged lb fm) = lookForDischarge (lb, fm) con
+checkProofInContext _ (NR VI q) =
+  case q of
+    (N Verum) -> GoodProof
+    _         -> BadlyFormedAtRule (RN VI)
 checkProofInContext con (UR CEL pp1 q) =
   case (ppConclusion pp1) of
     (B Conjunction r _) -> if q == r
@@ -338,6 +343,7 @@ maxSegments
 maxSegments = \case
   Open _ -> []
   Discharged _ _ -> []
+  NR rl _ -> [] -- can't very well have any completed segments yet!
   UR rl compon _ ->
     case rl of
       CEL -> case openSegments compon of
@@ -388,6 +394,9 @@ openSegments
 openSegments = \case
   Open _ -> Nothing
   Discharged _ _ -> Nothing
+  NR rl fm ->
+    case rl of
+      VI -> Just (CN Verum, degree fm, [1])
   UR rl _ fm ->
     case rl of
       CEL -> Nothing
@@ -466,6 +475,11 @@ alphaEquivalent pp1 pp2 = alphaGo [] pp1 pp2
     alphaGo alph p1 p2 = case (p1, p2) of
       (Open fm1, Open fm2) -> fm1 == fm2
       (Discharged lb1 fm1, Discharged lb2 fm2) -> fm1 == fm2 && (lb1, lb2) `elem` alph
+      (NR rl1 fm1, NR rl2 fm2)
+        | fm1 /= fm2 -> False
+        | otherwise -> case (rl1, rl2) of
+                        (VI, VI) -> True
+                        _        -> False
       (UR rl1 com1 fm1, UR rl2 com2 fm2)
         | fm1 /= fm2 -> False
         | otherwise -> case (rl1, rl2) of
@@ -497,6 +511,9 @@ labelsIn
 labelsIn = \case
   Open _ -> []
   Discharged _ _ -> []
+  NR nr _ ->
+    case nr of
+      VI -> []
   UR ur com _ ->
     let oldLabels = labelsIn com
     in case ur of
@@ -523,6 +540,7 @@ removeCompoundFEs
 removeCompoundFEs pp = case pp of
   Open _ -> pp
   Discharged _ _ -> pp
+  NR _ _ -> pp
   UR FE com fm -> case fm of
     A _ -> UR FE (removeCompoundFEs com) fm
     N Falsum -> removeCompoundFEs com

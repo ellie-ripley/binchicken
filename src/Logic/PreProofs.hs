@@ -38,6 +38,10 @@ data RawProofTree = RawProofTree
 
 -- Rule data types
 -- Discharging rules carry Text to indicate what's discharged
+data NullaryRule
+  = VI
+  deriving (Eq, Show, Generic, ToJSON, FromJSON)
+
 data UnaryRule
   = CEL
   | CER
@@ -59,7 +63,8 @@ newtype TrinaryRule
   deriving (Eq, Show, Generic, ToJSON, FromJSON)
 
 data Rule
-  = RU UnaryRule
+  = RN NullaryRule
+  | RU UnaryRule
   | RB BinaryRule
   | RT TrinaryRule
   deriving (Eq, Show, Generic, ToJSON, FromJSON)
@@ -79,7 +84,7 @@ randomRule
   => g
   -> (Rule, g)
 randomRule g =
-  let (ruleIndex, g1) = SR.randomR (0, 10) g
+  let (ruleIndex, g1) = SR.randomR (0, 11) g
   in  (go ruleIndex, g1)
     where
       go = \case
@@ -94,7 +99,8 @@ randomRule g =
             8 -> RB IE
             9 -> RB NE
             10 -> RT $ DE ""
-            _ -> error "A random number from 0 to 10 was outside that range. ?"
+            11 -> RN VI
+            _ -> error "A random number from 0 to 11 was outside that range. ?"
 
 addRandomRule
   :: forall g. (SR.RandomGen g)
@@ -118,6 +124,8 @@ randomRuleList (minSize, maxSize) g =
 
 governedConn :: Rule -> Connective
 governedConn = \case
+  (RN VI)  -> CN Verum
+
   (RU CEL) -> CB Conjunction
   (RU CER) -> CB Conjunction
   (RU DIL) -> CB Disjunction
@@ -136,6 +144,7 @@ governedConn = \case
 data PreProof
   = Open Formula
   | Discharged Text Formula
+  | NR NullaryRule Formula
   | UR UnaryRule PreProof Formula
   | BR BinaryRule PreProof PreProof Formula
   | TR TrinaryRule PreProof PreProof PreProof Formula
@@ -153,6 +162,12 @@ makeRaw = \case
     RawProofTree
       { label = "[" <> displayFormula fm <> "]" <> lb
       , rule  = ""
+      , forest = []
+      }
+  NR nr fm ->
+    RawProofTree
+      { label = displayFormula fm
+      , rule = ruleName (RN nr)
       , forest = []
       }
   UR ur com fm ->
@@ -227,6 +242,8 @@ readRule tx =
     "⊥E"    -> Right $ RU FE
     "~E"    -> Right $ RB NE
     "¬E"    -> Right $ RB NE
+    "TI"    -> Right $ RN VI
+    "⊤I"    -> Right $ RN VI
     _       -> case T.splitAt 3 cleanText of
                   ("\\/E", dm) -> readRuleDisjAux dm
                   ("->I" , dm) -> readRuleImplAux dm
@@ -255,9 +272,11 @@ ruleName = \case
   RU (NI tx) -> (displayConnective $ CU Negation) <> "I" <> tx
   RB NE  -> (displayConnective $ CU Negation) <> "E"
   RU FE  -> (displayConnective $ CN Falsum) <> "E"
+  RN VI  -> (displayConnective $ CN Verum) <> "I"
 
 ruleArity :: Rule -> Int
 ruleArity = \case
+  (RN _) -> 0
   (RU _) -> 1
   (RB _) -> 2
   (RT _) -> 3
@@ -269,6 +288,7 @@ data PreProofParseError
   | RuleNoDischargeLabel Rule
   | BadDischargeLabel Text
   | WrongShape Rule Int
+  | MaterialAboveNullaryRule Rule
   deriving (Show, Generic, ToJSON, FromJSON)
 
 displayPPPError :: PreProofParseError -> String
@@ -281,6 +301,7 @@ displayPPPError = \case
   RuleNoDischargeLabel rl -> renderHtml $ [shamlet|<p>You have a step of <code>#{ruleName rl}</code> that needs a discharge label, but doesn't have one!|]
   BadDischargeLabel tx -> renderHtml $ [shamlet|<p>You can't use <code>#{tx}</code> as a discharge label! Stick to digits.|]
   WrongShape rl nm -> renderHtml $ [shamlet|<p>The rule <code>#{ruleName rl}</code> needs #{ruleArity rl} subproofs; here it has #{nm}!|]
+  MaterialAboveNullaryRule rl -> renderHtml $ [shamlet|<p>The rule <code>#{ruleName rl}</code> should have nothing above it!|]
 
 parseFmla :: Text -> Maybe Formula
 parseFmla tx =
@@ -316,6 +337,11 @@ readPreProof (RawProofTree lbl rl for) =
       Left (BadRule _)          -> Left $ CantReadRule rl
       Left (MissingDischarge r) -> Left $ RuleNoDischargeLabel r
       Left (BadDischarge _ dm)  -> Left $ BadDischargeLabel dm
+      Right r@(RN rn) ->
+        case for of
+          [RawProofTree "" "" []] -> Right $ NR rn fm
+          [_] -> Left $ MaterialAboveNullaryRule r 
+          subs  -> Left $ WrongShape r (length subs)
       Right r@(RU ru) ->
         case for of
           [pp1] -> do
@@ -345,6 +371,7 @@ ppConclusion :: PreProof -> Formula
 ppConclusion = \case
   Open fm -> fm
   Discharged _ fm -> fm
+  NR _ fm -> fm
   UR _ _ fm -> fm
   BR _ _ _ fm -> fm
   TR _ _ _ _ fm -> fm
@@ -353,6 +380,7 @@ ppSize :: PreProof -> Int
 ppSize = \case
   Open _ -> 0
   Discharged _ _ -> 0
+  NR _ _ -> 1
   UR _ pp _ -> 1 + ppSize pp
   BR _ pp1 pp2 _ -> 1 + ppSize pp1 + ppSize pp2
   TR _ pp1 pp2 pp3 _ -> 1 + ppSize pp1 + ppSize pp2 + ppSize pp3
@@ -363,6 +391,7 @@ ppOpenAssumptions = nub . go
     go = \case
           Open fm -> [fm]
           Discharged _ _ -> []
+          NR _ _ -> []
           UR _ pp _ -> go pp
           BR _ pp1 pp2 _ -> go pp1 <> go pp2
           TR _ pp1 pp2 pp3 _ -> go pp1 <> go pp2 <> go pp3
@@ -373,6 +402,7 @@ ppDischargedAssumptions = nub . go
     go = \case
           Open _ -> []
           Discharged _ fm -> [fm]
+          NR _ _ -> []
           UR _ pp _ -> go pp
           BR _ pp1 pp2 _ -> go pp1 <> go pp2
           TR _ pp1 pp2 pp3 _ -> go pp1 <> go pp2 <> go pp3
@@ -383,6 +413,7 @@ ppRulesIn = nub . go
     go = \case
           Open _ -> []
           Discharged _ _ -> []
+          NR r _ -> [ruleRoot (RN r)]
           UR r pp _ -> ruleRoot (RU r) : go pp
           BR r pp1 pp2 _ -> ruleRoot (RB r) : (go pp1 <> go pp2)
           TR r pp1 pp2 pp3 _ -> ruleRoot (RT r) : (go pp1 <> go pp2 <> go pp3)
