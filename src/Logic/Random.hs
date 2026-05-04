@@ -228,22 +228,23 @@ randomAxiom
 randomAxiom fmSetts ivSetts g =
   let (weakenCoin, g1) = SR.randomR (0 :: Int, 99) g
       (idCoin, g2) = SR.randomR (0 :: Int, 99) g1
+      doId = idCoin < (idProbability ivSetts)
       (feviCoin, g2') = SR.random g2 -- True: FE, False: VI
       numPrems = if weakenCoin < (kProbability ivSetts)
                  then 2
                  else 1
-      (prems, g3) = if (idCoin < (idProbability ivSetts) ||  not feviCoin) 
+      (prems, g3) = if (doId ||  not feviCoin) 
                     then randomFormulas fmSetts numPrems g2'
                     else let (coin2, h) = SR.random g2'
                              (fm, h1) = randomFormula fmSetts h
                          in if coin2
                             then ([N Falsum, fm], h1)
                             else ([fm, N Falsum], h1)
-      (conc, g4) = if (not feviCoin)
-                      then (vum, g3)
-                      else if idCoin < (idProbability ivSetts)
-                           then randomElement prems g3
-                           else randomFormula fmSetts g3
+      (conc, g4) = if (doId)
+                   then randomElement prems g3
+                   else if feviCoin
+                        then randomFormula fmSetts g3
+                        else  (vum, g3)                                             
   in (Argument (nub prems) conc, g4)
 
 -- | Flips a weighted coin; Int is percent chance to Remove
