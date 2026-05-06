@@ -1,7 +1,4 @@
 // Ellie Ripley's modified version of Graham Leach-Krouse's proof.js
-// This has problems somewhere in the add/remove node or undo/redo processes:
-// visual display can come out of sync with the data structure!
-// I have not diagnosed the issue more than that.
 
 
 class DeductionNode {
