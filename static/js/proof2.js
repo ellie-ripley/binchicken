@@ -157,7 +157,7 @@ class DeductionNode {
             if (e.code == "Enter" && e.ctrlKey && e.shiftKey) {
                 e.preventDefault()
                 this.addParent()
-            } else if (e.code == "Enter" && e.ctrlKey) {
+            } else if ((e.code == "Enter" && e.ctrlKey) || (e.code == "KeyW" && e.ctrlKey)) {
                 e.preventDefault()
                 this.addChild()
                 try {parentElt.input.focus()} catch {elt.rootElt().input.focus()}
