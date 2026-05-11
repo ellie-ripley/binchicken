@@ -294,6 +294,7 @@ instance Yesod BinChicken where
     isAuthorized AlphaEquivalenceR _ = return Authorized
     isAuthorized BetaReductionR _ = return Authorized
     isAuthorized PerformSubstitutionR _ = return Authorized
+    isAuthorized IntModelsR _ = return Authorized
 
     -- the profile route requires that the user is authenticated, so we
     -- delegate to that function

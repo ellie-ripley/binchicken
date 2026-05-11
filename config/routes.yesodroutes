@@ -30,6 +30,7 @@
 /alpha-equivalence AlphaEquivalenceR GET POST
 /beta-reduction BetaReductionR GET POST
 /perform-substitution PerformSubstitutionR GET POST
+/intuitionistic-models IntModelsR GET POST
 
 -- Other pages
 /seshat SeshatR GET POST
