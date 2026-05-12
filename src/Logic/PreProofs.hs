@@ -180,13 +180,13 @@ makeRaw = \case
     RawProofTree
       { label = displayFormula fm
       , rule = ruleName (RB br)
-      , forest = [makeRaw com1, makeRaw com2]
+      , forest = [makeRaw com2, makeRaw com1]
       }
   TR tr com1 com2 com3 fm ->
     RawProofTree
       { label = displayFormula fm
       , rule = ruleName (RT tr)
-      , forest = [makeRaw com1, makeRaw com2, makeRaw com3]
+      , forest = [makeRaw com3, makeRaw com2, makeRaw com1]
       }
 
 
