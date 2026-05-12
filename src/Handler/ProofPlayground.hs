@@ -67,7 +67,7 @@ getProofPlaygroundR = do
       ajaxRoute = ProofPlaygroundR
   defaultLayout $ do
     setTitle "Proof playground"
-    toWidgetHead [hamlet|<script src=/static/js/proof.js>|]
+    toWidgetHead [hamlet|<script src=/static/js/proof2.js>|]
     toWidgetHead
         [hamlet|<link rel=stylesheet href=static/css/proof.css type="text/css" media="screen" charset="utf-8">|]
     $(widgetFile "proof-playground")

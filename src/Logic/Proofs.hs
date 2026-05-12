@@ -142,28 +142,28 @@ checkProofInContext con (UR FE pp1 _) =
     _          -> BadlyFormedAtRule (RU FE)
 checkProofInContext con (BR CI pp1 pp2 q) =
   case q of
-    (B Conjunction r s) -> if ppConclusion pp1 == s && ppConclusion pp2 == r
+    (B Conjunction r s) -> if ppConclusion pp1 == r && ppConclusion pp2 == s
                            then checkProofInContext con pp1 <> checkProofInContext con pp2
                            else BadlyFormedAtRule (RB CI)
     _                   -> BadlyFormedAtRule (RB CI)
 checkProofInContext con (BR IE pp1 pp2 q) =
-  case ppConclusion pp2 of
+  case ppConclusion pp1 of
     (B Implication r s) ->
-      if ppConclusion pp1 == r && s == q
+      if ppConclusion pp2 == r && s == q
       then checkProofInContext con pp1 <> checkProofInContext con pp2
       else BadlyFormedAtRule (RB IE)
     _ -> BadlyFormedAtRule (RB IE)
 checkProofInContext con (BR NE pp1 pp2 q) =
-  case ppConclusion pp2 of
+  case ppConclusion pp1 of
     (U Negation r) ->
-      if ppConclusion pp1 == r && q == N Falsum
+      if ppConclusion pp2 == r && q == N Falsum
       then checkProofInContext con pp1 <> checkProofInContext con pp2
       else BadlyFormedAtRule (RB NE)
     _ -> BadlyFormedAtRule (RB NE)
 checkProofInContext con (TR (DE lb) pp1 pp2 pp3 q) =
-  case ppConclusion pp3 of
+  case ppConclusion pp1 of
     (B Disjunction r s) ->
-      if ppConclusion pp1 == ppConclusion pp2 && ppConclusion pp1 == q
+      if ppConclusion pp2 == ppConclusion pp3 && ppConclusion pp2 == q
         then if lb `elem` map (\(a, _, _) -> a) con
                 then DuplicateDischarge lb
              else checkProofInContext ((lb, RT $ DE lb,  s) : con) pp1
