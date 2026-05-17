@@ -77,7 +77,6 @@
             <li>Press <code>Ctrl-Enter</code> or <code>Ctrl-W</code> to create a new parent node.
             <li>Press <code>Ctrl-Shift-Enter</code> to create a new child node.
             <li>Cycle nodes with <code>Tab</code> and <code>Shift-Tab</code>.
-            <li>Undo and Redo changes with <code>Ctrl-Z</code> and <code>Ctrl-Shift-Z</code>.
             <li>Delete subtrees with <code>Ctrl-Backspace</code>.
             <li>Cut, Copy, and Paste subtrees with <code>Shift-Ctrl-X</code>, <code>Shift-Ctrl-C</code>, and <code>Shift-Ctrl-V</code>
             <li>Finally, if you run into bugs or difficulties, please let me know! Screenshots are very much appreciated.

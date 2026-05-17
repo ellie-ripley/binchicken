@@ -68,7 +68,8 @@ defaultRandomFormulaSettings = \case
   AlphaEquivalence             -> defRandomFormulaSettings
   BetaReduction                -> defRandomFormulaSettings
   PerformSubstitution          ->
-    defRandomFormulaSettings { rfAtomics = map atomic ['p'..'u'] }    
+    defRandomFormulaSettings { rfAtomics = map atomic ['p'..'u'] }
+  IntCounterexample            -> defRandomFormulaSettings
 
 
 
@@ -196,6 +197,7 @@ targets = \case
   AlphaEquivalence             -> ExerciseTargets 10 20 12
   BetaReduction                -> ExerciseTargets 10 20 12
   PerformSubstitution          -> ExerciseTargets 15 30 12
+  IntCounterexample            -> ExerciseTargets 15 30 12
 
 fullStreak :: ExerciseType -> Int
 fullStreak = streakMilestone1 . targets
@@ -214,6 +216,7 @@ exerciseRoute = \case
   AlphaEquivalence             -> AlphaEquivalenceR
   BetaReduction                -> BetaReductionR
   PerformSubstitution          -> PerformSubstitutionR
+  IntCounterexample            -> IntModelsR
 
 data ActiveET
   = Placeholder
@@ -231,8 +234,6 @@ activeExerciseTypes =
   , Active CounterexampleClassical
   , Active CounterexampleNonclassical
   , Active ProveAnArgument
-  , Placeholder
-  , Placeholder
   ]
 
 

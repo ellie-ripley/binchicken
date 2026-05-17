@@ -202,9 +202,9 @@ calcMilestone (ExerciseTargets tot1 tot2 str) (Progress _ bes tot)
 calcPoints :: Milestone -> Rational
 calcPoints = \case
   NoMilestone -> 0
-  SmallTotal  -> 1
-  LargeTotal  -> 9 % 4
-  Streak      -> 7 % 2
+  SmallTotal  -> 3 % 2
+  LargeTotal  -> 3
+  Streak      -> 35 % 8
 
 renderPoints :: Rational -> String
 renderPoints rat 

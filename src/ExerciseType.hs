@@ -23,6 +23,7 @@ data ExerciseType =
   | AlphaEquivalence
   | BetaReduction
   | PerformSubstitution
+  | IntCounterexample
   deriving (Eq, Read, Show, Enum, Ord, Bounded, Generic)
 instance ToJSON ExerciseType
 instance FromJSON ExerciseType
@@ -42,6 +43,7 @@ prettyExerciseName = \case
   AlphaEquivalence -> "Provide a term alpha-equivalent to a given term"
   BetaReduction -> "Beta reduce a term until it can't be reduced farther"
   PerformSubstitution -> "Perform a given substitution on a given formula"
+  IntCounterexample -> "Say whether an intuitionistic model is a counterexample to an argument"
 
 data ExerciseTargets =
   ExerciseTargets { totalMilestone1 :: Int

@@ -173,12 +173,6 @@ class DeductionNode {
                     parentElt.input.focus()
                     this.parentNode.trigger("changed", true, this)
                 } catch {elt.rootElt().input.focus()}
-            } else if (e.code == "KeyZ" && e.ctrlKey && e.shiftKey) {
-                e.preventDefault()
-                this.trigger("redo",true,elt,this.ident)
-            } else if (e.code == "KeyZ" && e.ctrlKey) {
-                e.preventDefault()
-                this.trigger("undo",true, elt, this.ident)
             } else if (e.code == "KeyC" && e.shiftKey && e.ctrlKey) {
                 e.preventDefault()
                 DeductionNode.Clipboard = JSON.stringify(this)
