@@ -166,9 +166,9 @@ checkProofInContext con (TR (DE lb) pp1 pp2 pp3 q) =
       if ppConclusion pp2 == ppConclusion pp3 && ppConclusion pp2 == q
         then if lb `elem` map (\(a, _, _) -> a) con
                 then DuplicateDischarge lb
-             else checkProofInContext ((lb, RT $ DE lb,  s) : con) pp1
+             else checkProofInContext ((lb, RT $ DE lb,  s) : con) pp3
                   <> checkProofInContext ((lb, RT $ DE lb, r) : con) pp2
-                  <> checkProofInContext con pp3
+                  <> checkProofInContext con pp1
       else BadlyFormedAtRule (RT $ DE lb)
     _ -> BadlyFormedAtRule (RT $ DE lb)
 
