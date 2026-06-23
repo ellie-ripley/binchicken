@@ -49,13 +49,9 @@ import Text.Julius (rawJS)
 
 import ExerciseType (ExerciseType(..))
 import Handler.Common (updateScore)
-import Logic.Lambdas.Types (LVar(..), Term(..), lvarList)
-import Logic.Lambda   ( deBruijn
-                      , displayTerm
-                      , normaliseDB
-                      , parseTerm
-                      )
-import Logic.Random (randomLambdaTermIO)
+import Logic.Random
+import Logic.Lambdas.Types
+import Logic.Lambda
 import Scoring (Correct(..), correctToBool)
 
 data BRAttempt =
